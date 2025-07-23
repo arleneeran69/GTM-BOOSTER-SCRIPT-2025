@@ -1,38 +1,70 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-## DNSTT Keep-Alive & DNS Monitor v2.3
-## Author: GeoDevz69 | Enhanced by GeoDevz69
-## Now with Editable Menu System
+## DNSTT Keep-Alive & DNS Monitor v2.2
+## Author: GeoDevz69 | Enhanced by GeoDevz69 (Gateways First + Best Ping Suggestion)
 
-VER="2.3"
+VER="2.2"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="DEFAULT"
 CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
 VPN_INTERFACE="tun0"
 RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
-CONFIG_DIR="$HOME/.config/dnstt-monitor"
-SERVER_FILE="$CONFIG_DIR/servers.lst"
-GATEWAY_FILE="$CONFIG_DIR/gateways.lst"
 
-mkdir -p "$CONFIG_DIR"
+# DNS Tunnel Servers (unchanged)
+SERVERS=(
+  "ns.jkrol.fiber-x.shop 124.6.181.167"
+  "ns.jkrol.fiber-x.shop 124.6.181.31"
+  "ns.jkrol.fiber-x.shop 124.6.181.26"
+  "ns.jkrol.fiber-x.shop 124.6.181.25"
+  "ns.jkrol.fiber-x.shop 124.6.181.171"
+  "ns.jkrol.fiber-x.shop 124.6.181.161"
+  "ns.jkrol.fiber-x.shop 124.6.181.27"
+  "ns.jkrol.fiber-x.shop 124.6.181.248"
+  "vpn.kagerou.site 124.6.181.167"
+  "vpn.kagerou.site 124.6.181.31"
+  "vpn.kagerou.site 124.6.181.26"
+  "vpn.kagerou.site 124.6.181.25"
+  "vpn.kagerou.site 124.6.181.171"
+  "vpn.kagerou.site 124.6.181.161"
+  "vpn.kagerou.site 124.6.181.27"
+  "vpn.kagerou.site 124.6.181.248"
+  "ns.juanscript.com 124.6.181.167"
+  "ns.juanscript.com 124.6.181.171"
+  "ns.juanscript.com 124.6.181.161"
+  "ns.juanscript.com 124.6.181.27"
+  "ns.juanscript.com 124.6.181.31"
+  "ns.juanscript.com 124.6.181.26"
+  "ns.juanscript.com 124.6.181.25"
+  "ns.juanscript.com 124.6.181.248"
+  "gtm.codered-api.shop 124.6.181.167"
+  "gtm.codered-api.shop 124.6.181.171"
+  "gtm.codered-api.shop 124.6.181.161"
+  "gtm.codered-api.shop 124.6.181.27"
+  "gtm.codered-api.shop 124.6.181.31"
+  "gtm.codered-api.shop 124.6.181.26"
+  "gtm.codered-api.shop 124.6.181.25"
+  "gtm.codered-api.shop 124.6.181.248"
+  "ns.olptf.fiber-x.shop 124.6.181.167"
+  "ns.olptf.fiber-x.shop 124.6.181.171"
+  "ns.olptf.fiber-x.shop 124.6.181.161"
+  "ns.olptf.fiber-x.shop 124.6.181.27"
+  "ns.olptf.fiber-x.shop 124.6.181.31"
+  "ns.olptf.fiber-x.shop 124.6.181.26"
+  "ns.olptf.fiber-x.shop 124.6.181.25"
+  "ns.olptf.fiber-x.shop 124.6.181.248"
+  "sgns.lenux333.fun 124.6.181.167"
+  "sgns.lenux333.fun 124.6.181.171"
+  "sgns.lenux333.fun 124.6.181.161"
+  "sgns.lenux333.fun 124.6.181.27"
+  "sgns.lenux333.fun 124.6.181.31"
+  "sgns.lenux333.fun 124.6.181.26"
+  "sgns.lenux333.fun 124.6.181.25"
+  "sgns.lenux333.fun 124.6.181.248"
+)
 
-# Load default values if not present
-if [ ! -f "$SERVER_FILE" ]; then
-cat > "$SERVER_FILE" <<EOF
-ns.jkrol.fiber-x.shop 124.6.181.167
-ns.jkrol.fiber-x.shop 124.6.181.31
-vpn.kagerou.site 124.6.181.248
-EOF
-fi
-
-if [ ! -f "$GATEWAY_FILE" ]; then
-echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9" > "$GATEWAY_FILE"
-fi
-
-# Load servers and gateways
-mapfile -t SERVERS < "$SERVER_FILE"
-mapfile -t GATEWAYS < "$GATEWAY_FILE"
+# Public DNS Gateways
+GATEWAYS=( "1.1.1.1" "8.8.8.8" "8.8.4.4" "9.9.9.9" "0.0.0.0" )
 
 fail_count=0
 total_ok=0
@@ -43,6 +75,7 @@ case "${DIG_EXEC}" in
   CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
   *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
 esac
+
 [ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
 trap 'echo -e "\n[+] Exiting..."; exit 0' SIGINT SIGTERM
 
@@ -60,6 +93,7 @@ color_ping() {
 check_interface() {
   if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
     echo -e "\n[✓] $VPN_INTERFACE is UP"
+    return 0
   else
     echo -e "\n[✗] $VPN_INTERFACE is DOWN"
     restart_vpn
@@ -79,7 +113,7 @@ check_speed() {
   RX=$(echo "$stats" | awk '{print $1}')
   TX=$(echo "$stats" | awk '{print $9}')
   if [[ "$RX" == "0" && "$TX" == "0" ]]; then
-    echo -e "    ⚠️  \e[33mRX/TX = 0 on $VPN_INTERFACE\e[0m"
+    echo -e "    \e[33m⚠️  RX/TX = 0 on $VPN_INTERFACE\e[0m"
   else
     echo -e "    🔄 RX=${RX}B | TX=${TX}B"
   fi
@@ -104,7 +138,7 @@ check_gateways() {
     fi
   done
   if [[ -n "$best_gw" ]]; then
-    echo -e "\n✅ Best Gateway: \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
+    echo -e "\n✅ Best Gateway (Airplane Mode): \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
   else
     echo -e "\n⚠️  No reachable gateways detected."
   fi
@@ -120,75 +154,42 @@ check_servers() {
     ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
     if [[ $? -eq 0 ]]; then
       ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "    ✓ Ping OK — "
+      echo -ne "    \e[32m✓ Ping OK\e[0m — "
       color_ping "$ping_ms"
     else
-      echo -e "    ✗ Ping FAIL"
+      echo -e "    \e[31m✗ Ping FAIL\e[0m"
       ((fail_count++)); ((total_fail++))
       continue
     fi
 
     if timeout -k 3 3 "$_DIG" @"$ip" "$domain" > /dev/null 2>&1; then
-      echo -e "    ✓ DNS Query OK"
+      echo -e "    \e[32m✓ DNS Query OK\e[0m"
       ((ok_count++)); ((total_ok++))
     else
-      echo -e "    ✗ DNS Query FAIL"
+      echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
       ((fail_count++)); ((total_fail++))
     fi
   done
 
   if (( fail_count >= FAIL_LIMIT )); then
-    echo -e "\n[!] Too many failures ($fail_count) — restarting tunnel"
+    echo -e "\n\e[31m[!] Too many failures ($fail_count) — restarting tunnel\e[0m"
     fail_count=0
     restart_vpn
   fi
 
-  echo -e "\n📊 Summary: OK=$total_ok | FAIL=$total_fail | This Round=$ok_count"
+  echo -e "\n\e[36m📊 Summary: OK=$total_ok | FAIL=$total_fail | This round OK=$ok_count\e[0m"
 }
 
-edit_menu() {
-  echo -e "\n🛠️  EDIT MODE"
-  echo "1) View/Edit NS Servers"
-  echo "2) View/Edit DNS Gateways"
-  echo "3) Back to Monitor"
-  echo -n "Choose: "
-  read -r choice
-  case "$choice" in
-    1)
-      echo -e "\nCurrent NS List:"
-      cat -n "$SERVER_FILE"
-      echo -e "\nEdit this file manually? (y/n): "
-      read -r ans
-      [[ "$ans" == "y" ]] && nano "$SERVER_FILE"
-      mapfile -t SERVERS < "$SERVER_FILE"
-      ;;
-    2)
-      echo -e "\nCurrent Gateways:"
-      cat -n "$GATEWAY_FILE"
-      echo -e "\nEdit this file manually? (y/n): "
-      read -r ans
-      [[ "$ans" == "y" ]] && nano "$GATEWAY_FILE"
-      mapfile -t GATEWAYS < "$GATEWAY_FILE"
-      ;;
-    *)
-      echo "Returning to monitor..."
-      ;;
-  esac
-}
-
-### Menu or Start Immediately
-if [[ "$1" == "--edit" ]]; then
-  edit_menu
-fi
-
+# Header
 echo -e "\n[+] DNSTT Keep-Alive v${VER} - Gateway & DNS Monitor"
 echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
 
+# Main loop
 ((LOOP_DELAY < 1)) && LOOP_DELAY=2
 while true; do
   check_interface
   check_speed
-  check_gateways
+  check_gateways     ## <<< Gateways now run BEFORE server checks
   check_servers
   echo -e "\n-------------------------------"
   sleep "$LOOP_DELAY"

@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 ## DNSTT Keep-Alive & DNS Monitor v2.3
-## Author: GeoDevz69 | Cleaned by ChatGPT
+## Author: GeoDevz69 💕
 
 VER="2.3"
 LOOP_DELAY=5

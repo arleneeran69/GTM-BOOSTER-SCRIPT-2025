@@ -1,112 +1,204 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Author: GeoDevz69 
-# Version: v2.0 Menu-Based Installer
+## DNSTT Keep-Alive & DNS Monitor v2.2
+## Author: GeoDevz69 | Enhanced by GeoDevz69 (Gateways First + Best Ping Suggestion)
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+VER="2.2"
+LOOP_DELAY=5
+FAIL_LIMIT=5
+DIG_EXEC="DEFAULT"
+CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
+VPN_INTERFACE="tun0"
+RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 
-# DNS Tools
-dns_tools() {
-    clear
-    echo -e "${CYAN}Installing DNS Utilities...${NC}"
-    pkg update -y
-    pkg install -y dnsutils resolv-conf
-    echo -e "${GREEN}DNS tools installed.${NC}"
-    pause_return
+# DNS Tunnel Servers (unchanged)
+SERVERS=(
+"ns.jkrol.fiber-x.shop 124.6.181.167"
+  "ns.jkrol.fiber-x.shop 124.6.181.31"
+  "ns.jkrol.fiber-x.shop 124.6.181.26"
+  "ns.jkrol.fiber-x.shop 124.6.181.25"
+  "ns.jkrol.fiber-x.shop 124.6.181.171"
+  "ns.jkrol.fiber-x.shop 124.6.181.161"
+  "ns.jkrol.fiber-x.shop 124.6.181.27"
+  "ns.jkrol.fiber-x.shop 124.6.181.248"
+
+  "vpn.kagerou.site 124.6.181.167"
+  "vpn.kagerou.site 124.6.181.31"
+  "vpn.kagerou.site 124.6.181.26"
+  "vpn.kagerou.site 124.6.181.25"
+  "vpn.kagerou.site 124.6.181.171"
+  "vpn.kagerou.site 124.6.181.161"
+  "vpn.kagerou.site 124.6.181.27"
+  "vpn.kagerou.site 124.6.181.248"
+
+  "ns.juanscript.com 124.6.181.167"
+  "ns.juanscript.com 124.6.181.171"
+  "ns.juanscript.com 124.6.181.161"
+  "ns.juanscript.com 124.6.181.27"
+  "ns.juanscript.com 124.6.181.31"
+  "ns.juanscript.com 124.6.181.26"
+  "ns.juanscript.com 124.6.181.25"
+  "ns.juanscript.com 124.6.181.248"
+
+  "gtm.codered-api.shop 124.6.181.167"
+  "gtm.codered-api.shop 124.6.181.171"
+  "gtm.codered-api.shop 124.6.181.161"
+  "gtm.codered-api.shop 124.6.181.27"
+  "gtm.codered-api.shop 124.6.181.31"
+  "gtm.codered-api.shop 124.6.181.26"
+  "gtm.codered-api.shop 124.6.181.25"
+  "gtm.codered-api.shop 124.6.181.248"
+
+  "ns.olptf.fiber-x.shop 124.6.181.167"
+  "ns.olptf.fiber-x.shop 124.6.181.171"
+  "ns.olptf.fiber-x.shop 124.6.181.161"
+  "ns.olptf.fiber-x.shop 124.6.181.27"
+  "ns.olptf.fiber-x.shop 124.6.181.31"
+  "ns.olptf.fiber-x.shop 124.6.181.26"
+  "ns.olptf.fiber-x.shop 124.6.181.25"
+  "ns.olptf.fiber-x.shop 124.6.181.248"
+  
+  "sgns.lenux333.fun 124.6.181.167"
+  "sgns.lenux333.fun 124.6.181.171"
+  "sgns.lenux333.fun 124.6.181.161"
+  "sgns.lenux333.fun 124.6.181.27"
+  "sgns.lenux333.fun 124.6.181.31"
+  "sgns.lenux333.fun 124.6.181.26"
+  "sgns.lenux333.fun 124.6.181.25"
+  "sgns.lenux333.fun 124.6.181.248"
+  
+)
+
+# Public DNS Gateways
+GATEWAYS=( "1.1.1.1" "8.8.8.8" "8.8.4.4" "9.9.9.9" "0.0.0.0" )
+
+fail_count=0
+total_ok=0
+total_fail=0
+
+case "${DIG_EXEC}" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
+  *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
+esac
+
+[ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
+trap 'echo -e "\n[+] Exiting..."; exit 0' SIGINT SIGTERM
+
+color_ping() {
+  local ms=$1
+  if [[ $ms -le 100 ]]; then
+    echo -e "\e[32m${ms}ms FAST\e[0m"
+  elif [[ $ms -le 250 ]]; then
+    echo -e "\e[33m${ms}ms MEDIUM\e[0m"
+  else
+    echo -e "\e[31m${ms}ms SLOW\e[0m"
+  fi
 }
 
-# NS Lookup Tools
-ns_tools() {
-    clear
-    echo -e "${CYAN}Installing NS Lookup Utilities...${NC}"
-    pkg install -y bind-utils
-    echo -e "${GREEN}NS Lookup tools installed.${NC}"
-    echo "Try: nslookup example.com"
-    pause_return
+check_interface() {
+  if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
+    echo -e "\n[✓] $VPN_INTERFACE is UP"
+    return 0
+  else
+    echo -e "\n[✗] $VPN_INTERFACE is DOWN"
+    restart_vpn
+    return 1
+  fi
 }
 
-# Submenu for Gateways
-gateway_menu() {
-    while true; do
-        clear
-        echo -e "${YELLOW}Choose a Gateway script to install:${NC}"
-        echo "1) Default Gateway Script"
-        echo "2) Custom Gateway A"
-        echo "3) Custom Gateway B"
-        echo "0) Return to Main Menu"
-        echo -n "Enter choice: "
-        read -r gw_choice
-        case $gw_choice in
-            1) install_default_gateway ;;
-            2) install_custom_gateway_a ;;
-            3) install_custom_gateway_b ;;
-            0) break ;;
-            *) echo -e "${RED}Invalid choice. Try again.${NC}" ; sleep 1 ;;
-        esac
-    done
+restart_vpn() {
+  echo -e "\n\e[33m[!] Restarting DNSTT Client...\e[0m"
+  pkill -f dnstt-client 2>/dev/null
+  eval "$RESTART_CMD" &
+  sleep 2
 }
 
-install_default_gateway() {
-    clear
-    echo -e "${CYAN}Installing Default Gateway Script...${NC}"
-    pkg install -y curl
-    curl -sL https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main/install | bash
-    echo -e "${GREEN}Default Gateway Installed.${NC}"
-    pause_return
+check_speed() {
+  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
+  RX=$(echo "$stats" | awk '{print $1}')
+  TX=$(echo "$stats" | awk '{print $9}')
+  if [[ "$RX" == "0" && "$TX" == "0" ]]; then
+    echo -e "    \e[33m⚠️  RX/TX = 0 on $VPN_INTERFACE\e[0m"
+  else
+    echo -e "    🔄 RX=${RX}B | TX=${TX}B"
+  fi
 }
 
-install_custom_gateway_a() {
-    clear
-    echo -e "${CYAN}Installing Custom Gateway A...${NC}"
-    echo "Custom Gateway A script goes here."
-    pause_return
+check_gateways() {
+  echo -e "\n🌐 Checking Gateway DNS Response Times:"
+  best_gw=""
+  best_ping=9999
+  for gw in "${GATEWAYS[@]}"; do
+    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    $gw — "
+      color_ping "$ms"
+      if [[ $ms -lt $best_ping ]]; then
+        best_ping=$ms
+        best_gw=$gw
+      fi
+    else
+      echo -e "    $gw — \e[31mUnreachable\e[0m"
+    fi
+  done
+  if [[ -n "$best_gw" ]]; then
+    echo -e "\n✅ Best Gateway (Airplane Mode): \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
+  else
+    echo -e "\n⚠️  No reachable gateways detected."
+  fi
 }
 
-install_custom_gateway_b() {
-    clear
-    echo -e "${CYAN}Installing Custom Gateway B...${NC}"
-    echo "Custom Gateway B script goes here."
-    pause_return
+check_servers() {
+  local ok_count=0
+  for entry in "${SERVERS[@]}"; do
+    domain=$(echo "$entry" | awk '{print $1}')
+    ip=$(echo "$entry" | awk '{print $2}')
+    echo -e "\n[•] Checking \e[34m$domain\e[0m @ $ip"
+
+    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    \e[32m✓ Ping OK\e[0m — "
+      color_ping "$ping_ms"
+    else
+      echo -e "    \e[31m✗ Ping FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+      continue
+    fi
+
+    if timeout -k 3 3 "$_DIG" @"$ip" "$domain" > /dev/null 2>&1; then
+      echo -e "    \e[32m✓ DNS Query OK\e[0m"
+      ((ok_count++)); ((total_ok++))
+    else
+      echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+    fi
+  done
+
+  if (( fail_count >= FAIL_LIMIT )); then
+    echo -e "\n\e[31m[!] Too many failures ($fail_count) — restarting tunnel\e[0m"
+    fail_count=0
+    restart_vpn
+  fi
+
+  echo -e "\n\e[36m📊 Summary: OK=$total_ok | FAIL=$total_fail | This round OK=$ok_count\e[0m"
 }
 
-pause_return() {
-    echo
-    echo -e "${YELLOW}Press Enter to return to the main menu...${NC}"
-    read
-}
+# Header
+echo -e "\n[+] DNSTT Keep-Alive v${VER} - Gateway & DNS Monitor"
+echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
+echo -e "    📡 Server List:"
+for entry in "${SERVERS[@]}"; do echo -e "    \e[34m$entry\e[0m"; done
 
-# Main Menu
-main_menu() {
-    while true; do
-        clear
-        echo -e "${CYAN}"
-        echo "#########################################"
-        echo "#     Termux Tools Installer Menu       #"
-        echo "#     DNS / Gateway / NS Utilities      #"
-        echo "#             Version: 2.0              #"
-        echo "#########################################"
-        echo -e "${NC}"
-        echo -e "${YELLOW}Select an option:${NC}"
-        echo "1) DNS Tools"
-        echo "2) Gateways Installer"
-        echo "3) NS Lookup Tools"
-        echo "0) Exit"
-        echo -n "Enter choice: "
-        read -r choice
-        case $choice in
-            1) dns_tools ;;
-            2) gateway_menu ;;
-            3) ns_tools ;;
-            0) clear; echo "Exiting..."; exit 0 ;;
-            *) echo -e "${RED}Invalid option. Try again.${NC}" ; sleep 1 ;;
-        esac
-    done
-}
-
-# Start script
-main_menu
+# Main loop
+((LOOP_DELAY < 1)) && LOOP_DELAY=2
+while true; do
+  check_interface
+  check_speed
+  check_gateways     ## <<< Gateways now run BEFORE server checks
+  check_servers
+  echo -e "\n-------------------------------"
+  sleep "$LOOP_DELAY"
+done

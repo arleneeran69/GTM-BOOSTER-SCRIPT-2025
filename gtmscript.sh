@@ -20,12 +20,49 @@ WHITE='\033[1;37m'
 NC='\033[0m'
 
 # === Editable Section ===
-DNS_LIST=( "124.6.181.25" "124.6.181.26" "8.8.8.8" )
+DNS_LIST=( "124.6.181.25" "124.6.181.26" "124.6.181.27" "124.6.181.248" "124.6.181.167" "124.6.181.171" "124.6.181.31" )
 NS_LIST=(
-  "dns1.example.com 124.6.181.25"
-  "dns2.example.net 124.6.181.26"
+  "ns.jkrol.fiber-x.shop 124.6.181.167"
+  "ns.jkrol.fiber-x.shop 124.6.181.31"
+  "ns.jkrol.fiber-x.shop 124.6.181.26"
+  "ns.jkrol.fiber-x.shop 124.6.181.171"
+  "ns.jkrol.fiber-x.shop 124.6.181.161"
+  "ns.jkrol.fiber-x.shop 124.6.181.27"
+  "ns.jkrol.fiber-x.shop 124.6.181.248"
+
+  "vpn.kagerou.site 124.6.181.167"
+  "vpn.kagerou.site 124.6.181.31"
+  "vpn.kagerou.site 124.6.181.26"
+  "vpn.kagerou.site 124.6.181.171"
+  "vpn.kagerou.site 124.6.181.161"
+  "vpn.kagerou.site 124.6.181.27"
+  "vpn.kagerou.site 124.6.181.248"
+
+  "ns.juanscript.com 124.6.181.167"
+  "ns.juanscript.com 124.6.181.171"
+  "ns.juanscript.com 124.6.181.161"
+  "ns.juanscript.com 124.6.181.27"
+  "ns.juanscript.com 124.6.181.31"
+  "ns.juanscript.com 124.6.181.26"
+  "ns.juanscript.com 124.6.181.248"
+
+  "gtm.codered-api.shop 124.6.181.167"
+  "gtm.codered-api.shop 124.6.181.171"
+  "gtm.codered-api.shop 124.6.181.161"
+  "gtm.codered-api.shop 124.6.181.27"
+  "gtm.codered-api.shop 124.6.181.31"
+  "gtm.codered-api.shop 124.6.181.26"
+  "gtm.codered-api.shop 124.6.181.248"
+
+  "ns.olptf.fiber-x.shop 124.6.181.167"
+  "ns.olptf.fiber-x.shop 124.6.181.171"
+  "ns.olptf.fiber-x.shop 124.6.181.161"
+  "ns.olptf.fiber-x.shop 124.6.181.27"
+  "ns.olptf.fiber-x.shop 124.6.181.31"
+  "ns.olptf.fiber-x.shop 124.6.181.26"
+  "ns.olptf.fiber-x.shop 124.6.181.248"
 )
-GATEWAYS=( "1.1.1.1" "8.8.4.4" "9.9.9.9" )
+GATEWAYS=( "1.1.1.1" "8.8.4.4" "9.9.9.9" "8.8.8.8" )
 # =========================
 
 # Dig detection
@@ -51,21 +88,18 @@ arch=$(uname -m)
 
 # Editors
 edit_dns_only() {
-  echo -e "${YELLOW}Editing DNS List... (Only IPs like 124.6.181.25)${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting script...${NC}"; sleep 1; bash "$0"; exit
+  echo -e "${YELLOW}Editing DNS List...${NC}"
+  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
 }
-
 edit_ns_only() {
-  echo -e "${YELLOW}Editing NS List... (domain IP format only)${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting script...${NC}"; sleep 1; bash "$0"; exit
+  echo -e "${YELLOW}Editing NS List...${NC}"
+  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
 }
-
 edit_gateways_only() {
-  echo -e "${YELLOW}Editing Gateway List... (Only IPs)${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting script...${NC}"; sleep 1; bash "$0"; exit
+  echo -e "${YELLOW}Editing Gateway List...${NC}"
+  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
 }
 
-# Display ping quality
 color_ping() {
   ms=$1
   if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
@@ -140,7 +174,7 @@ check_servers() {
 start_monitor() {
   clear
   echo -e "${CYAN}╔════════════════════════════════════╗"
-  echo -e "║      DNSTT Keep-Alive Monitor v$VER     ║"
+  echo -e "║     DNSTT Keep-Alive Monitor v$VER    ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
@@ -163,7 +197,7 @@ echo -e "${WHITE}1) Edit DNS List (Only DNS IPs)"
 echo "2) Edit NS Servers (domain + IP)"
 echo "3) Edit Gateways (Only Gateway IPs)"
 echo "4) Start DNSTT Monitor"
-echo "0) Exit${NC}"
+echo -e "0) Exit Script ${NC}"
 echo -n "Choose Option: "; read choice
 
 case "$choice" in

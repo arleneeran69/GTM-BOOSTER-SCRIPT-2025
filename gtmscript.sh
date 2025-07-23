@@ -29,7 +29,6 @@ NS_LIST=(
   "ns.jkrol.fiber-x.shop 124.6.181.161"
   "ns.jkrol.fiber-x.shop 124.6.181.27"
   "ns.jkrol.fiber-x.shop 124.6.181.248"
-
   "vpn.kagerou.site 124.6.181.167"
   "vpn.kagerou.site 124.6.181.31"
   "vpn.kagerou.site 124.6.181.26"
@@ -37,7 +36,6 @@ NS_LIST=(
   "vpn.kagerou.site 124.6.181.161"
   "vpn.kagerou.site 124.6.181.27"
   "vpn.kagerou.site 124.6.181.248"
-
   "ns.juanscript.com 124.6.181.167"
   "ns.juanscript.com 124.6.181.171"
   "ns.juanscript.com 124.6.181.161"
@@ -45,7 +43,6 @@ NS_LIST=(
   "ns.juanscript.com 124.6.181.31"
   "ns.juanscript.com 124.6.181.26"
   "ns.juanscript.com 124.6.181.248"
-
   "gtm.codered-api.shop 124.6.181.167"
   "gtm.codered-api.shop 124.6.181.171"
   "gtm.codered-api.shop 124.6.181.161"
@@ -53,7 +50,6 @@ NS_LIST=(
   "gtm.codered-api.shop 124.6.181.31"
   "gtm.codered-api.shop 124.6.181.26"
   "gtm.codered-api.shop 124.6.181.248"
-
   "ns.olptf.fiber-x.shop 124.6.181.167"
   "ns.olptf.fiber-x.shop 124.6.181.171"
   "ns.olptf.fiber-x.shop 124.6.181.161"
@@ -65,7 +61,6 @@ NS_LIST=(
 GATEWAYS=( "1.1.1.1" "8.8.4.4" "9.9.9.9" "8.8.8.8" )
 # =========================
 
-# Dig detection
 case "$DIG_EXEC" in
   DEFAULT|D) _DIG=$(command -v dig) ;;
   CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
@@ -74,7 +69,6 @@ esac
 
 [ ! -x "$_DIG" ] && echo "[!] dig not found or not executable: $_DIG" && exit 1
 
-# Validate Termux & Arch
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
@@ -86,7 +80,6 @@ arch=$(uname -m)
   exit 1
 }
 
-# Editors
 edit_dns_only() {
   echo -e "${YELLOW}Editing DNS List...${NC}"
   sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
@@ -148,7 +141,10 @@ check_gateways() {
 }
 
 check_servers() {
+  echo -e "\n🔍 Checking NS Servers:"
   fail_count=0
+  best_ns=""; best_ping=9999
+
   for entry in "${NS_LIST[@]}"; do
     domain=$(echo "$entry" | awk '{print $1}')
     ip=$(echo "$entry" | awk '{print $2}')
@@ -158,16 +154,22 @@ check_servers() {
     if [[ $? -eq 0 ]]; then
       ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
       echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
+      (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
     else
-      echo -e "    ✗ Ping FAIL"
+      echo -e "    ✗ ${RED}Ping FAIL${NC}"
       ((fail_count++)); continue
     fi
 
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null \
-      && echo -e "    ✓ DNS Query OK" \
-      || { echo -e "    ✗ DNS Query FAIL"; ((fail_count++)); }
+    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo -e "    ${GREEN}✓ DNS Query OK${NC}"
+    else
+      echo -e "    ${RED}✗ DNS Query FAIL${NC}"
+      ((fail_count++))
+    fi
   done
 
+  [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
 }
 

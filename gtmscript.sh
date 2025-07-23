@@ -38,7 +38,6 @@ fail_count=0
 total_ok=0
 total_fail=0
 
-# Determine dig executable
 case "${DIG_EXEC}" in
   DEFAULT|D) _DIG=$(command -v dig) ;;
   CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
@@ -47,7 +46,6 @@ esac
 [ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
 trap 'echo -e "\n[+] Exiting..."; exit 0' SIGINT SIGTERM
 
-# Color-coded ping display
 color_ping() {
   local ms=$1
   if [[ $ms -le 100 ]]; then
@@ -59,7 +57,6 @@ color_ping() {
   fi
 }
 
-# VPN Interface checker
 check_interface() {
   if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
     echo -e "\n[✓] $VPN_INTERFACE is UP"
@@ -184,11 +181,9 @@ if [[ "$1" == "--edit" ]]; then
   edit_menu
 fi
 
-# Header
 echo -e "\n[+] DNSTT Keep-Alive v${VER} - Gateway & DNS Monitor"
 echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
 
-# Main loop
 ((LOOP_DELAY < 1)) && LOOP_DELAY=2
 while true; do
   check_interface

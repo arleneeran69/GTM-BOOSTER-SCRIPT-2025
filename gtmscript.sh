@@ -1,9 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-## DNSTT Keep-Alive & DNS Monitor v2.3
-## Author: GeoDevz69 💕
+## DNSTT Keep-Alive & DNS Monitor v2.3.1
+## Author: GeoDevz69 💕 | Fixed by ChatGPT
 
-VER="2.3"
+VER="2.3.1"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="DEFAULT"
@@ -61,25 +61,31 @@ NS_LIST=(
 GATEWAYS=( "1.1.1.1" "8.8.4.4" "9.9.9.9" "8.8.8.8" )
 # =========================
 
+# DIG resolver setup
 case "$DIG_EXEC" in
   DEFAULT|D) _DIG=$(command -v dig) ;;
   CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
   *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
 esac
-
 [ ! -x "$_DIG" ] && echo "[!] dig not found or not executable: $_DIG" && exit 1
 
+# Termux + Architecture Check
 arch=$(uname -m)
-[[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
-  echo -e "${RED}Unsupported architecture: $arch${NC}"
-  echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
-  exit 1
-}
+case "$arch" in
+  armv7l|aarch64|x86_64) ;;  # allow
+  *)
+    echo -e "${RED}Unsupported architecture: $arch${NC}"
+    echo -e "${YELLOW}Use Termux for: armv7l, aarch64, or x86_64${NC}"
+    exit 1
+    ;;
+esac
+
 [ ! -d "/data/data/com.termux" ] && {
-  echo -e "${RED}This script runs only in Termux!${NC}"
+  echo -e "${RED}This script is for Termux only!${NC}"
   exit 1
 }
 
+# === Menu Edit Functions ===
 edit_dns_only() {
   echo -e "${YELLOW}Editing DNS List...${NC}"
   sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
@@ -93,6 +99,7 @@ edit_gateways_only() {
   sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
 }
 
+# === Utilities ===
 color_ping() {
   ms=$1
   if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"

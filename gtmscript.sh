@@ -1,12 +1,12 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux SCRIPT with Loading Screen - Multi-Arch Support - Pink UI
-# Version 4.2.3
+# Termux SCRIPT with Loading Screen - Multi-Arch Support - Full Pink UI
+# Modified: GeoDevz69 | Version 4.2
 
 # Colors
 PINK='\033[1;35m'
 NC='\033[0m'
 
-VER="4.2.3"
+VER="4.2"
 
 # Detect architecture
 get_arch() {
@@ -19,7 +19,7 @@ get_arch() {
     esac
 }
 
-# Check for Termux
+# Check for Termux environment
 if [ ! -d "/data/data/com.termux" ]; then
     echo -e "${PINK}This script is for Termux only!${NC}"
     exit 1
@@ -32,10 +32,11 @@ if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "
     exit 1
 fi
 
+# Trap for generic error handling
 handle_error() {
-    echo -e "\n${PINK}⚠️  An error occurred at ${progress:-unknown}%${NC}"
-    echo -e "${PINK}💡 Fix tips:"
-    echo -e "${PINK}1. Check your internet connection"
+    echo -e "\n${PINK}⚠️  An error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "${PINK}💡 Possible fixes:"
+    echo -e "1. Check your internet connection"
     echo -e "2. Run: apt update && apt upgrade -y${NC}"
     exit 1
 }
@@ -50,8 +51,8 @@ run_silently() {
 show_header() {
     clear_screen
     echo -e "${PINK}┌──────────────────────────────┐"
-    echo -e "${PINK}│    GeoDevz69 Termux Script   │"
-    echo -e "${PINK}│        Version: $VER          │"
+    echo -e "${PINK}│     GeoDevz69 Termux Script  │"
+    echo -e "${PINK}│         Version: $VER        │"
     echo -e "${PINK}└──────────────────────────────┘${NC}"
     echo
 }
@@ -70,9 +71,10 @@ show_loading_bar() {
             0) run_silently "rm -rf install"; progress=10 ;;
             10) run_silently "apt update -y"; progress=20 ;;
             20) run_silently "apt install -y wget"; progress=30 ;;
-            30) run_silently "apt install -y dnsutils"; progress=40 ;;
-            40) run_silently "apt install -y nano curl"; progress=50 ;;
-            50) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
+            30) run_silently "apt install -y curl iputils dnsutils"; progress=40 ;;
+            40) run_silently "apt install -y nano resolv-conf"; progress=50 ;;
+            50) echo -e 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /data/data/com.termux/files/usr/etc/resolv.conf; progress=60 ;;
+            60) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
             70) run_silently "chmod +x $SCRIPT_NAME"; progress=80 ;;
             80) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=100 ;;
         esac
@@ -97,11 +99,16 @@ main_installation() {
     echo -e "${PINK}│     INSTALLATION COMPLETE    │"
     echo -e "${PINK}└──────────────────────────────┘${NC}"
     echo
-    echo -e "${PINK}📌 TERMUX SCRIPT ready!"
-    echo -e "🌐 https://phcorner.net/members/geodevz69.696969${NC}"
+    echo -e "${PINK}📡 Optimized with Fastest DNS:"
+    echo -e "    • Cloudflare (1.1.1.1)"
+    echo -e "    • Google (8.8.8.8)${NC}"
+    echo
+    echo -e "${PINK}🌐 https://phcorner.net/members/geodevz69.696969${NC}"
+    echo
     echo -e "${PINK}Press Enter to continue...${NC}"
     read -p ""
 }
 
 main_installation
+
 echo -e "${PINK}✔️ Ready! Type 'menu' to start.${NC}"

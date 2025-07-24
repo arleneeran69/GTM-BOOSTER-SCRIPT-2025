@@ -167,7 +167,7 @@ start_monitor() {
 # ==== Menu ====
 edit_dns_only() { echo -e "${YELLOW}Editing DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; exec bash "$0"; }
 edit_ns_only() {
-  echo -e "${YELLOW}Editing NS Servers (domain IP)...${NC}"
+  echo -e "${YELLOW}Editing NS Servers (Domain IPs)...${NC}"
   echo "# Format: domain IP" > "$NS_FILE"
   echo "# Ex: example.com 1.1.1.1" >> "$NS_FILE"
   sleep 1; nano "$NS_FILE"; exec bash "$0"
@@ -179,9 +179,9 @@ echo -e "${PINK}╔════════════════════�
 echo -e "║       GTM Main Menu           ║"
 echo -e "╚═══════════════════════════════╝${NC}"
 echo -e "${WHITE}1) Edit DNS List (IPs Only)"
-echo "2) Edit NS Servers (domain IP)"
+echo "2) Edit NS Servers (Domain & IPs)"
 echo "3) Edit Gateways (IPs Only)"
-echo "4) Run Monitor Script"
+echo "4) Run Script"
 echo -e "0) Exit ${NC}"
 echo -ne "${PINK}Choose Option: ${NC}"; read choice
 

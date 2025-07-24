@@ -1,114 +1,193 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# GTM Script with Loading Screen - Multi-Arch Support
-# Author: GeoDevz69 | Version 4.2
+
+# DNSTT Keep-Alive & DNS Monitor v2.3
+# Author: GeoDevz69 💕
+
+VER="2.3"
+LOOP_DELAY=5
+FAIL_LIMIT=5
+DIG_EXEC="CUSTOM"
+CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
+VPN_INTERFACE="tun0"
+RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 
 # Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
 PINK='\033[1;35m'
 NC='\033[0m'
 
-VER="4.2"
+# Config files
+DNS_FILE="$HOME/.dns_list.txt"
+NS_FILE="$HOME/.ns_list.txt"
+GW_FILE="$HOME/.gateway_list.txt"
 
-# Detect architecture
-get_arch() {
-    case "$(uname -m)" in
-        aarch64) echo "aarch64" ;;
-        x86_64) echo "x86_64" ;;
-        armv7l|armv8l|arm) echo "arm" ;;  # 32-bit ARM
-        i*86) echo "i686" ;;
-        *) echo "unknown" ;;
-    esac
+# Create empty files if missing
+touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
+
+# Load data
+readarray -t DNS_LIST < "$DNS_FILE"
+readarray -t NS_LIST < "$NS_FILE"
+readarray -t GATEWAYS < "$GW_FILE"
+
+# Choose dig binary
+case "$DIG_EXEC" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
+  *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
+esac
+
+[ ! -x "$_DIG" ] && {
+  echo -e "${RED}[!] dig not found or not executable: $_DIG${NC}"
+  exit 1
 }
 
-# Check for Termux environment
-if [ ! -d "/data/data/com.termux" ]; then
-    echo -e "${PINK}This script is for Termux only!${NC}"
-    exit 1
-fi
-
-ARCH_TYPE="$(get_arch)"
-if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
-    echo -e "${PINK}Unsupported architecture: $ARCH_TYPE${NC}"
-    echo -e "${PINK}Only aarch64, arm, and x86_64 are supported.${NC}"
-    exit 1
-fi
-
-# Trap for generic error handling
-handle_error() {
-    echo -e "\n${PINK}An error occurred at ${progress:-unknown}%!${NC}"
-    echo -e "${PINK}Possible fixes:${NC}"
-    echo -e "${PINK}1. Check your internet connection"
-    echo -e "2. Run 'apt update && apt upgrade -y'${NC}"
-    exit 1
+arch=$(uname -m)
+[[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
+  echo -e "${RED}Unsupported architecture: $arch${NC}"
+  echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
+  exit 1
 }
-trap 'handle_error' ERR
-
-clear_screen() {
-    clear
+[ ! -d "/data/data/com.termux" ] && {
+  echo -e "${RED}This script runs only in Termux!${NC}"
+  exit 1
 }
 
-run_silently() {
-    eval "$1" >/dev/null 2>&1 || return 1
+# ===== Editor Functions =====
+edit_dns_only() {
+  echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
+  sleep 1; nano "$DNS_FILE"; exec bash "$0"
 }
 
-show_header() {
-    clear_screen
-    echo -e "${PINK}╔══════════════════════════╗${NC}"
-    echo -e "${PINK}  GeoDevz69 Termux Script  ${NC}"
-    echo -e "${PINK}       Version: $VER        ${NC}"
-    echo -e "${PINK}╚══════════════════════════╝${NC}"
-    echo
+edit_ns_only() {
+  echo -e "${YELLOW}Edit NS entries only (format: domain IP)...${NC}"
+  echo "# Enter one NS entry per line in this format:" > "$NS_FILE"
+  echo "# example.com 1.2.3.4" >> "$NS_FILE"
+  echo "# Do NOT include DNS-only lines here!" >> "$NS_FILE"
+  sleep 1; nano "$NS_FILE"; exec bash "$0"
 }
 
-show_loading_bar() {
-    echo -e "${PINK}Installing Termux Script...${NC}"
-    echo
-
-    local width=20
-    local progress=0
-    local ARCH="$(get_arch)"
-    local URL_BASE="https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main"
-    local SCRIPT_NAME="termux-script-version-$VER"
-
-    while [ $progress -lt 100 ]; do
-        case $progress in
-            0) run_silently "rm -rf install"; progress=10 ;;
-            10) run_silently "apt update -y"; progress=20 ;;
-            20) run_silently "apt install -y wget"; progress=30 ;;
-            30) run_silently "apt install -y dnsutils"; progress=40 ;;
-            40) run_silently "apt install -y nano"; progress=50 ;;
-            50) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
-            70) run_silently "chmod +x $SCRIPT_NAME"; progress=80 ;;
-            80) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=100 ;;
-        esac
-
-        # Draw progress bar
-        filled=$((progress * width / 100))
-        bar="["
-        for ((i=0; i<filled; i++)); do bar+="■"; done
-        for ((i=filled; i<width; i++)); do bar+=" "; done
-        bar+="]"
-
-        printf "\r${PINK}%s %3d%%%s" "$bar" "$progress" "$NC"
-        sleep 0.2
-    done
-    printf "\n"
+edit_gateways_only() {
+  echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
+  sleep 1; nano "$GW_FILE"; exec bash "$0"
 }
 
-main_installation() {
-    show_header
-    show_loading_bar
-    echo
-    echo -e "${PINK}╔══════════════════════════╗${NC}"
-    echo -e "${PINK}   INSTALLATION COMPLETE   ${NC}"
-    echo -e "${PINK}╚══════════════════════════╝${NC}"
-    echo
-    echo -e "${PINK}TERMUX SCRIPT by GeoDevz69${NC}"
-    echo -e "${PINK}GitHub: GTM-BOOSTER-SCRIPT-2025${NC}"
-    echo
-    echo -e "${PINK}Press Enter to continue...${NC}"
-    read -p ""
+# ===== Utility =====
+color_ping() {
+  ms=$1
+  if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
+  elif (( ms <= 250 )); then echo -e "${YELLOW}${ms}ms MEDIUM${NC}"
+  else echo -e "${RED}${ms}ms SLOW${NC}"; fi
 }
 
-main_installation
+restart_vpn() {
+  echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
+  pkill -f dnstt-client 2>/dev/null
+  eval "$RESTART_CMD" &
+  sleep 2
+}
 
-echo -e "${PINK}Ready! Type 'menu' to start. 💻💕${NC}"
+check_interface() {
+  if ip link show "$VPN_INTERFACE" &>/dev/null; then
+    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}"
+  else
+    echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"
+    restart_vpn
+  fi
+}
+
+check_speed() {
+  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
+  RX=$(echo "$stats" | awk '{print $1}')
+  TX=$(echo "$stats" | awk '{print $9}')
+  echo -e "📶 RX=${RX}B | TX=${TX}B"
+}
+
+check_gateways() {
+  echo -e "\n🌐 Gateway Ping:"
+  best_gw=""; best_ping=9999
+  for gw in "${GATEWAYS[@]}"; do
+    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "  $gw — "; color_ping "$ms"
+      (( ms < best_ping )) && best_ping=$ms && best_gw=$gw
+    else
+      echo -e "  $gw — ${RED}Unreachable${NC}"
+    fi
+  done
+  [[ "$best_gw" ]] && echo -e "\n✅ Best Gateway: $best_gw — $(color_ping $best_ping)"
+}
+
+check_servers() {
+  echo -e "\n🔍 Checking NS Servers:"
+  fail_count=0; best_ns=""; best_ping=9999
+
+  for entry in "${NS_LIST[@]}"; do
+    domain=$(echo "$entry" | awk '{print $1}')
+    ip=$(echo "$entry" | awk '{print $2}')
+    [[ -z "$domain" || -z "$ip" ]] && continue
+
+    echo -e "\n[•] $domain @ $ip"
+
+    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
+      (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
+    else
+      echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
+    fi
+
+    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo -e "    ${GREEN}✓ DNS Query OK${NC}"
+    else
+      echo -e "    ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
+    fi
+  done
+
+  [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
+  (( fail_count >= FAIL_LIMIT )) && restart_vpn
+}
+
+start_monitor() {
+  clear
+  echo -e "${PINK}╔════════════════════════════════════╗"
+  echo -e "║     DNSTT Keep-Alive Monitor v$VER    ║"
+  echo -e "╚════════════════════════════════════╝${NC}"
+  echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
+  echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
+  while true; do
+    check_interface
+    check_speed
+    check_gateways
+    check_servers
+    echo -e "\n${CYAN}-------------------------------${NC}"
+    sleep "$LOOP_DELAY"
+  done
+}
+
+# ===== Main Menu =====
+clear
+echo -e "${PINK}╔═══════════════════════════════╗"
+echo -e "║       DNSTT Utility Menu       ║"
+echo -e "╚═══════════════════════════════╝${NC}"
+echo -e "${WHITE}1) Edit DNS List (Only IPs)"
+echo "2) Edit NS Servers (domain + IP)"
+echo "3) Edit Gateways (Only IPs)"
+echo "4) Start DNSTT Monitor"
+echo -e "0) Exit Script ${NC}"
+echo -ne "${PINK}Choose Option: ${NC}"; read choice
+
+case "$choice" in
+  1) edit_dns_only ;;
+  2) edit_ns_only ;;
+  3) edit_gateways_only ;;
+  4) start_monitor ;;
+  0) echo -e "${YELLOW}Bye.${NC}"; exit 0 ;;
+  *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
+esac

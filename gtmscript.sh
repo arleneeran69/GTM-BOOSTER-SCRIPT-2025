@@ -1,219 +1,164 @@
 #!/data/data/com.termux/files/usr/bin/bash
-
-## DNSTT Keep-Alive & DNS Monitor v2.3.1
-## Author: GeoDevz69 💕 | Fixed by ChatGPT
-
-VER="2.3.1"
-LOOP_DELAY=5
-FAIL_LIMIT=5
-DIG_EXEC="DEFAULT"
-CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
-VPN_INTERFACE="tun0"
-RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
+# Termux SCRIPT with Loading Screen, DNSTT, Fastdig, and Gateway Menu
+# Author: GeoDevz69 💕 | Version 4.2.2
 
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-# === Editable Section ===
-DNS_LIST=( "124.6.181.25" "124.6.181.26" "124.6.181.27" "124.6.181.248" "124.6.181.167" "124.6.181.171" "124.6.181.31" )
-NS_LIST=(
-  "ns.jkrol.fiber-x.shop 124.6.181.167"
-  "ns.jkrol.fiber-x.shop 124.6.181.31"
-  "ns.jkrol.fiber-x.shop 124.6.181.26"
-  "ns.jkrol.fiber-x.shop 124.6.181.171"
-  "ns.jkrol.fiber-x.shop 124.6.181.161"
-  "ns.jkrol.fiber-x.shop 124.6.181.27"
-  "ns.jkrol.fiber-x.shop 124.6.181.248"
-  "vpn.kagerou.site 124.6.181.167"
-  "vpn.kagerou.site 124.6.181.31"
-  "vpn.kagerou.site 124.6.181.26"
-  "vpn.kagerou.site 124.6.181.171"
-  "vpn.kagerou.site 124.6.181.161"
-  "vpn.kagerou.site 124.6.181.27"
-  "vpn.kagerou.site 124.6.181.248"
-  "ns.juanscript.com 124.6.181.167"
-  "ns.juanscript.com 124.6.181.171"
-  "ns.juanscript.com 124.6.181.161"
-  "ns.juanscript.com 124.6.181.27"
-  "ns.juanscript.com 124.6.181.31"
-  "ns.juanscript.com 124.6.181.26"
-  "ns.juanscript.com 124.6.181.248"
-  "gtm.codered-api.shop 124.6.181.167"
-  "gtm.codered-api.shop 124.6.181.171"
-  "gtm.codered-api.shop 124.6.181.161"
-  "gtm.codered-api.shop 124.6.181.27"
-  "gtm.codered-api.shop 124.6.181.31"
-  "gtm.codered-api.shop 124.6.181.26"
-  "gtm.codered-api.shop 124.6.181.248"
-  "ns.olptf.fiber-x.shop 124.6.181.167"
-  "ns.olptf.fiber-x.shop 124.6.181.171"
-  "ns.olptf.fiber-x.shop 124.6.181.161"
-  "ns.olptf.fiber-x.shop 124.6.181.27"
-  "ns.olptf.fiber-x.shop 124.6.181.31"
-  "ns.olptf.fiber-x.shop 124.6.181.26"
-  "ns.olptf.fiber-x.shop 124.6.181.248"
-)
-GATEWAYS=( "1.1.1.1" "8.8.4.4" "9.9.9.9" "8.8.8.8" )
-# =========================
+VER="4.2.2"
+BIN_DIR="$HOME/go/bin"
+GATEWAY_FILE="$HOME/gateways.txt"
 
-# DIG resolver setup
-case "$DIG_EXEC" in
-  DEFAULT|D) _DIG=$(command -v dig) ;;
-  CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
-  *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
-esac
-[ ! -x "$_DIG" ] && echo "[!] dig not found or not executable: $_DIG" && exit 1
+# Detect architecture
+get_arch() {
+    case "$(uname -m)" in
+        aarch64) echo "aarch64" ;;
+        x86_64) echo "x86_64" ;;
+        armv7l|armv8l|arm) echo "arm" ;;
+        i*86) echo "i686" ;;
+        *) echo "unknown" ;;
+    esac
+}
 
-# Termux + Architecture Check
-arch=$(uname -m)
-case "$arch" in
-  armv7l|aarch64|x86_64) ;;  # allow
-  *)
-    echo -e "${RED}Unsupported architecture: $arch${NC}"
-    echo -e "${YELLOW}Use Termux for: armv7l, aarch64, or x86_64${NC}"
+# Check for Termux environment
+if [ ! -d "/data/data/com.termux" ]; then
+    echo -e "${RED}This script is for Termux only!${NC}"
     exit 1
-    ;;
-esac
+fi
 
-[ ! -d "/data/data/com.termux" ] && {
-  echo -e "${RED}This script is for Termux only!${NC}"
-  exit 1
-}
+ARCH_TYPE="$(get_arch)"
+if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
+    echo -e "${RED}Unsupported architecture: $ARCH_TYPE${NC}"
+    echo -e "${YELLOW}Supported: aarch64, arm, x86_64${NC}"
+    exit 1
+fi
 
-# === Menu Edit Functions ===
-edit_dns_only() {
-  echo -e "${YELLOW}Editing DNS List...${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
+# Error handling
+handle_error() {
+    echo -e "\n${RED}An error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "${YELLOW}Fix Tips:${NC}"
+    echo -e "${WHITE}1. Check internet"
+    echo -e "2. Run: apt update && apt upgrade -y${NC}"
+    exit 1
 }
-edit_ns_only() {
-  echo -e "${YELLOW}Editing NS List...${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
-}
-edit_gateways_only() {
-  echo -e "${YELLOW}Editing Gateway List...${NC}"
-  sleep 1; nano "$0"; echo -e "${YELLOW}Restarting...${NC}"; sleep 1; bash "$0"; exit
-}
+trap 'handle_error' ERR
 
-# === Utilities ===
-color_ping() {
-  ms=$1
-  if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
-  elif (( ms <= 250 )); then echo -e "${YELLOW}${ms}ms MEDIUM${NC}"
-  else echo -e "${RED}${ms}ms SLOW${NC}"; fi
+clear_screen() {
+    clear
 }
 
-restart_vpn() {
-  echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
-  pkill -f dnstt-client 2>/dev/null
-  eval "$RESTART_CMD" &
-  sleep 2
+run_silently() {
+    eval "$1" >/dev/null 2>&1 || return 1
 }
 
-check_interface() {
-  ip link show "$VPN_INTERFACE" &>/dev/null \
-    && echo -e "[✓] $VPN_INTERFACE is UP" \
-    || { echo -e "[✗] $VPN_INTERFACE is DOWN"; restart_vpn; return 1; }
+show_header() {
+    clear_screen
+    echo -e "${WHITE}╔══════════════════════════╗${NC}"
+    echo -e "${WHITE}  GeoDevz69 💕 Termux Script${NC}"
+    echo -e "${WHITE}       Version: $VER        ${NC}"
+    echo -e "${WHITE}╚══════════════════════════╝${NC}"
+    echo
 }
 
-check_speed() {
-  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
-  RX=$(echo "$stats" | awk '{print $1}')
-  TX=$(echo "$stats" | awk '{print $9}')
-  [[ "$RX" == "0" && "$TX" == "0" ]] \
-    && echo -e "⚠️  RX/TX = 0 on $VPN_INTERFACE" \
-    || echo -e "🔄 RX=${RX}B | TX=${TX}B"
-}
-
-check_gateways() {
-  echo -e "\n🌐 Gateway Ping:"
-  best_gw=""; best_ping=9999
-  for gw in "${GATEWAYS[@]}"; do
-    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "  $gw — "; color_ping "$ms"
-      (( ms < best_ping )) && best_ping=$ms && best_gw=$gw
-    else
-      echo -e "  $gw — ${RED}Unreachable${NC}"
+add_to_path() {
+    if ! grep -q 'export PATH=$HOME/go/bin:$PATH' ~/.bashrc; then
+        echo 'export PATH=$HOME/go/bin:$PATH' >> ~/.bashrc
     fi
-  done
-  [[ "$best_gw" ]] \
-    && echo -e "\n✅ Best Gateway: $best_gw — $(color_ping $best_ping)" \
-    || echo -e "\n⚠️  No reachable gateways."
+    export PATH=$HOME/go/bin:$PATH
 }
 
-check_servers() {
-  echo -e "\n🔍 Checking NS Servers:"
-  fail_count=0
-  best_ns=""; best_ping=9999
+show_loading_bar() {
+    echo -e "${WHITE}Installing Termux Script...${NC}"
+    echo
 
-  for entry in "${NS_LIST[@]}"; do
-    domain=$(echo "$entry" | awk '{print $1}')
-    ip=$(echo "$entry" | awk '{print $2}')
-    echo -e "\n[•] $domain @ $ip"
+    local width=20
+    local progress=0
+    local ARCH="$(get_arch)"
+    local URL_BASE="https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main"
+    local SCRIPT_NAME="termux-script-version-4.2"
+    local DNSTT_URL FASTDIG_URL
 
-    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
-      (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
-    else
-      echo -e "    ✗ ${RED}Ping FAIL${NC}"
-      ((fail_count++)); continue
-    fi
+    mkdir -p "$BIN_DIR"
 
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
-    if [[ $? -eq 0 ]]; then
-      echo -e "    ${GREEN}✓ DNS Query OK${NC}"
-    else
-      echo -e "    ${RED}✗ DNS Query FAIL${NC}"
-      ((fail_count++))
-    fi
-  done
+    case "$ARCH" in
+        aarch64) DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-arm64" ;;
+        arm)     DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-arm" ;;
+        x86_64)  DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-amd64" ;;
+        *)       echo -e "${RED}No dnstt binary for $ARCH${NC}"; exit 1 ;;
+    esac
+    FASTDIG_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/fastdig"
 
-  [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
-  (( fail_count >= FAIL_LIMIT )) && restart_vpn
+    while [ $progress -lt 100 ]; do
+        case $progress in
+            0) run_silently "rm -rf install"; progress=10 ;;
+            10) run_silently "apt update -y"; progress=20 ;;
+            20) run_silently "apt install -y wget curl"; progress=30 ;;
+            30) run_silently "apt install -y dnsutils nano"; progress=40 ;;
+            40) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=50 ;;
+            50) run_silently "chmod +x $SCRIPT_NAME"; progress=60 ;;
+            60) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=70 ;;
+            70) run_silently "wget -qO $BIN_DIR/dnstt-client $DNSTT_URL"; progress=80 ;;
+            80) run_silently "wget -qO $BIN_DIR/fastdig $FASTDIG_URL"; progress=90 ;;
+            90) run_silently "chmod +x $BIN_DIR/dnstt-client $BIN_DIR/fastdig"; progress=100 ;;
+        esac
+
+        # Draw loading bar
+        filled=$((progress * width / 100))
+        bar="["
+        for ((i=0; i<filled; i++)); do bar+="■"; done
+        for ((i=filled; i<width; i++)); do bar+=" "; done
+        bar+="]"
+        printf "\r%s %3d%%" "$bar" "$progress"
+        sleep 0.2
+    done
+    printf "\n"
+    add_to_path
 }
 
-start_monitor() {
-  clear
-  echo -e "${CYAN}╔════════════════════════════════════╗"
-  echo -e "║     DNSTT Keep-Alive Monitor v$VER    ║"
-  echo -e "╚════════════════════════════════════╝${NC}"
-  echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
-  echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
-  while true; do
-    check_interface
-    check_speed
-    check_gateways
-    check_servers
-    echo -e "\n-------------------------------"
-    sleep "$LOOP_DELAY"
-  done
+main_installation() {
+    show_header
+    show_loading_bar
+    echo
+    echo -e "${WHITE}╔══════════════════════════╗${NC}"
+    echo -e "${WHITE}   INSTALLATION COMPLETE   ${NC}"
+    echo -e "${WHITE}╚══════════════════════════╝${NC}"
+    echo
+    echo -e "${CYAN}TERMUX SCRIPT by GeoDevz69 💕${NC}"
+    echo -e "${BLUE}https://github.com/GeoDevz69${NC}"
+    echo
+    echo -e "${YELLOW}Press Enter to continue...${NC}"
+    read -p ""
 }
 
-# ===== Main Menu =====
-clear
-echo -e "${CYAN}╔═══════════════════════════════╗"
-echo -e "║       DNSTT Utility Menu       ║"
-echo -e "╚═══════════════════════════════╝${NC}"
-echo -e "${WHITE}1) Edit DNS List (Only DNS IPs)"
-echo "2) Edit NS Servers (domain + IP)"
-echo "3) Edit Gateways (Only Gateway IPs)"
-echo "4) Start DNSTT Monitor"
-echo -e "0) Exit Script ${NC}"
-echo -n "Choose Option: "; read choice
+edit_gateway_menu() {
+    echo -e "${CYAN}GATEWAY EDITOR${NC}"
+    [ ! -f "$GATEWAY_FILE" ] && echo "# Your gateway list goes here" > "$GATEWAY_FILE"
+    nano "$GATEWAY_FILE"
+}
 
-case "$choice" in
-  1) edit_dns_only ;;
-  2) edit_ns_only ;;
-  3) edit_gateways_only ;;
-  4) start_monitor ;;
-  0) echo -e "${YELLOW}Bye.${NC}"; exit 0 ;;
-  *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
-esac
+show_menu() {
+    while true; do
+        clear_screen
+        echo -e "${WHITE}╔═════════════════════╗${NC}"
+        echo -e "${WHITE}   TERMUX MAIN MENU   ${NC}"
+        echo -e "${WHITE}╚═════════════════════╝${NC}"
+        echo -e "${GREEN}[1]${NC} Edit Gateways"
+        echo -e "${GREEN}[0]${NC} Exit"
+        echo
+        read -p "Choose: " opt
+        case "$opt" in
+            1) edit_gateway_menu ;;
+            0) echo -e "${YELLOW}Goodbye.${NC}"; exit 0 ;;
+            *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
+        esac
+    done
+}
+
+main_installation
+show_menu

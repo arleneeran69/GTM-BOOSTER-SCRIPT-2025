@@ -1,9 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.1
+# DNSTT Keep-Alive & DNS Monitor v2.3.2
 # Author: GeoDevz69 💕
 
-VER="2.3.1"
+VER="2.3.2"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -24,21 +24,20 @@ NC='\033[0m'
 DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
-
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
-
 readarray -t DNS_LIST < "$DNS_FILE"
 readarray -t NS_LIST < "$NS_FILE"
 readarray -t GATEWAYS < "$GW_FILE"
 
+# Dig command
 case "$DIG_EXEC" in
   DEFAULT|D) _DIG=$(command -v dig) ;;
   CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
   *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
 esac
-
 [ ! -x "$_DIG" ] && { echo -e "${RED}[!] dig not found: $_DIG${NC}"; exit 1; }
 
+# Safety checks
 [[ "$(uname -m)" != "aarch64" && "$(uname -m)" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture${NC}"; exit 1;
 }
@@ -46,7 +45,8 @@ esac
   echo -e "${RED}This script runs only in Termux!${NC}"; exit 1;
 }
 
-# ==== Ping Coloring ====
+# ===== Helper Functions =====
+
 color_ping() {
   ms=$1
   if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
@@ -54,7 +54,6 @@ color_ping() {
   else echo -e "${RED}${ms}ms SLOW${NC}"; fi
 }
 
-# ==== Restart ====
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
@@ -62,7 +61,6 @@ restart_vpn() {
   sleep 2
 }
 
-# ==== Interface ====
 check_interface() {
   if ip link show "$VPN_INTERFACE" &>/dev/null; then
     echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}"
@@ -79,7 +77,6 @@ check_speed() {
   echo -e "📶 RX=${RX}B | TX=${TX}B"
 }
 
-# ==== Gateway Ping ====
 check_gateways() {
   echo -e "\n🌐 Gateway Ping:"
   best_gw=""; best_ping=9999
@@ -97,7 +94,6 @@ check_gateways() {
   [[ "$best_gw" ]] && echo -e "\n✅ Best Gateway: $best_gw — $(color_ping $best_ping)"
 }
 
-# ==== DNS-only IPs ====
 check_dns_ips() {
   echo -e "\n📡 DNS IPs:"
   for dnsip in "${DNS_LIST[@]}"; do
@@ -112,7 +108,7 @@ check_dns_ips() {
   done
 }
 
-# ==== NS Server Check ====
+# ✅ FIXED NS CHECK FUNCTION
 check_servers() {
   echo -e "\n🔍 Checking NS Servers:"
   fail_count=0; best_ns=""; best_ping=9999
@@ -123,17 +119,19 @@ check_servers() {
     [[ -z "$domain" || -z "$ip" ]] && continue
 
     echo -e "[•] $domain @ $ip"
-    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print int($2)}')
+
+    # Ping check
+    ping_ms=$(ping -c1 -W2 "$ip" 2>/dev/null | grep 'time=' | awk -F'time=' '{print int($2)}')
+    if [[ -n "$ping_ms" ]]; then
       echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
       (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
     else
       echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
     fi
 
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
-    if [[ $? -eq 0 ]]; then
+    # DNS query check (uses NOERROR to verify success)
+    dig_out=$(timeout -k 3 3 "$_DIG" @"$ip" "$domain" 2>/dev/null)
+    if echo "$dig_out" | grep -q "NOERROR"; then
       echo -e "    ${GREEN}✓ DNS Query OK${NC}"
     else
       echo -e "    ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
@@ -144,7 +142,6 @@ check_servers() {
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
 }
 
-# ==== Monitoring Loop ====
 start_monitor() {
   clear
   echo -e "${PINK}╔════════════════════════════════════╗"
@@ -164,7 +161,7 @@ start_monitor() {
   done
 }
 
-# ==== Menu ====
+# ===== Menu ====
 edit_dns_only() { echo -e "${YELLOW}Editing DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; exec bash "$0"; }
 edit_ns_only() {
   echo -e "${YELLOW}Editing NS Servers (Domain IPs)...${NC}"

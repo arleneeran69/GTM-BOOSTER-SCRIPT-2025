@@ -24,10 +24,29 @@ NC='\033[0m'
 DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
+
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
-readarray -t DNS_LIST < "$DNS_FILE"
-readarray -t NS_LIST < "$NS_FILE"
-readarray -t GATEWAYS < "$GW_FILE"
+
+# Load DNS list (IPs only)
+DNS_LIST=()
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" =~ ^# ]] && continue
+  DNS_LIST+=("$line")
+done < "$DNS_FILE"
+
+# Load NS list (domain + IP)
+NS_LIST=()
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" =~ ^# ]] && continue
+  NS_LIST+=("$line")
+done < "$NS_FILE"
+
+# Load gateway list
+GATEWAYS=()
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" =~ ^# ]] && continue
+  GATEWAYS+=("$line")
+done < "$GW_FILE"
 
 # Dig command
 case "$DIG_EXEC" in
@@ -35,12 +54,14 @@ case "$DIG_EXEC" in
   CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
   *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
 esac
+
 [ ! -x "$_DIG" ] && { echo -e "${RED}[!] dig not found: $_DIG${NC}"; exit 1; }
 
 # Safety checks
 [[ "$(uname -m)" != "aarch64" && "$(uname -m)" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture${NC}"; exit 1;
 }
+
 [ ! -d "/data/data/com.termux" ] && {
   echo -e "${RED}This script runs only in Termux!${NC}"; exit 1;
 }
@@ -108,7 +129,6 @@ check_dns_ips() {
   done
 }
 
-# ✅ FIXED NS CHECK FUNCTION
 check_servers() {
   echo -e "\n🔍 Checking NS Servers:"
   fail_count=0; best_ns=""; best_ping=9999
@@ -120,7 +140,6 @@ check_servers() {
 
     echo -e "[•] $domain @ $ip"
 
-    # Ping check
     ping_ms=$(ping -c1 -W2 "$ip" 2>/dev/null | grep 'time=' | awk -F'time=' '{print int($2)}')
     if [[ -n "$ping_ms" ]]; then
       echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
@@ -129,7 +148,6 @@ check_servers() {
       echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
     fi
 
-    # DNS query check (uses NOERROR to verify success)
     dig_out=$(timeout -k 3 3 "$_DIG" @"$ip" "$domain" 2>/dev/null)
     if echo "$dig_out" | grep -q "NOERROR"; then
       echo -e "    ${GREEN}✓ DNS Query OK${NC}"
@@ -162,15 +180,27 @@ start_monitor() {
 }
 
 # ===== Menu ====
-edit_dns_only() { echo -e "${YELLOW}Editing DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; exec bash "$0"; }
+
+edit_dns_only() {
+  echo -e "${YELLOW}Editing DNS IPs only...${NC}"
+  sleep 1; nano "$DNS_FILE"; exec bash "$0"
+}
+
 edit_ns_only() {
   echo -e "${YELLOW}Editing NS Servers (Domain IPs)...${NC}"
-  echo "# Format: domain IP" > "$NS_FILE"
-  echo "# Ex: example.com 1.1.1.1" >> "$NS_FILE"
+  if [ ! -s "$NS_FILE" ]; then
+    echo "# Format: domain IP" > "$NS_FILE"
+    echo "# Ex: example.com 1.1.1.1" >> "$NS_FILE"
+  fi
   sleep 1; nano "$NS_FILE"; exec bash "$0"
 }
-edit_gateways_only() { echo -e "${YELLOW}Editing Gateway IPs...${NC}"; sleep 1; nano "$GW_FILE"; exec bash "$0"; }
 
+edit_gateways_only() {
+  echo -e "${YELLOW}Editing Gateway IPs...${NC}"
+  sleep 1; nano "$GW_FILE"; exec bash "$0"
+}
+
+# ===== Menu Display ====
 clear
 echo -e "${PINK}╔═══════════════════════════════╗"
 echo -e "║       GTM Main Menu           ║"

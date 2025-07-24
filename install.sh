@@ -157,7 +157,7 @@ check_servers() {
 start_monitor() {
   clear
   echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║     DNSTT Keep-Alive Monitor v$VER    ║"
+  echo -e "║     GBooster Toolv$VER   ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
@@ -174,12 +174,12 @@ start_monitor() {
 # ===== Main Menu =====
 clear
 echo -e "${PINK}╔═══════════════════════════════╗"
-echo -e "║       DNSTT Utility Menu       ║"
+echo -e "║       GTM Main Menu       ║"
 echo -e "╚═══════════════════════════════╝${NC}"
-echo -e "${WHITE}1) Edit DNS List (Only IPs)"
-echo "2) Edit NS Servers (domain + IP)"
-echo "3) Edit Gateways (Only IPs)"
-echo "4) Start DNSTT Monitor"
+echo -e "${WHITE}1) Edit DNS List (IPs Only)"
+echo "2) Edit NS Servers (Domain Only)"
+echo "3) Edit Gateways (IPs Only)"
+echo "4) Run Script"
 echo -e "0) Exit Script ${NC}"
 echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
@@ -188,6 +188,9 @@ case "$choice" in
   2) edit_ns_only ;;
   3) edit_gateways_only ;;
   4) start_monitor ;;
-  0) echo -e "${YELLOW}Bye.${NC}"; exit 0 ;;
+  0) echo -e "${YELLOW}Thanks For Using this Script 💕.${NC}"; exit 0 ;;
   *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
 esac
+
+
+

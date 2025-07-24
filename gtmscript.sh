@@ -1,104 +1,114 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux Script v4.2.3 – Pink UI, DNS/NS/GW Editor, DNSTT
-# Author: GeoDevz69
+# GTM Script with Loading Screen - Multi-Arch Support
+# Author: GeoDevz69 | Version 4.2
 
 # Colors
 PINK='\033[1;35m'
-WHITE='\033[1;37m'
 NC='\033[0m'
 
-# Paths
-DNS_FILE="$HOME/.dns_list"
-NS_FILE="$HOME/.ns_list"
-GW_FILE="$HOME/.gw_list"
-DNSTT_BIN="$HOME/go/bin/dnstt-client"
+VER="4.2"
 
-# Ensure files exist
-touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
-
-# Header UI
-show_header() {
-  clear
-  echo -e "${PINK}┌────────────────────────────────────┐"
-  echo -e "│     GeoDevz Termux Script v4.2.3  │"
-  echo -e "├────────────────────────────────────┤"
-  echo -e "│ DNS: $(wc -l < $DNS_FILE)  NS: $(wc -l < $NS_FILE)  GW: $(wc -l < $GW_FILE) │"
-  echo -e "└────────────────────────────────────┘${NC}"
-}
-
-# Pink Loading Screen
-loading_screen() {
-  echo -e "${PINK}Loading"
-  for i in {1..3}; do
-    echo -n "."
-    sleep 0.5
-  done
-  echo -e "${NC}"
-}
-
-# Install Requirements
-install_requirements() {
-  pkg install -y curl wget nano proot tar git || exit 1
-  # Download DNSTT client if not available
-  if [ ! -f "$DNSTT_BIN" ]; then
-    echo -e "${PINK}[+] Installing DNSTT client...${NC}"
-    mkdir -p "$(dirname "$DNSTT_BIN")"
-    curl -sLo "$DNSTT_BIN" https://raw.githubusercontent.com/geo-dns/dnstt-client/main/dnstt-client && chmod +x "$DNSTT_BIN"
-  fi
-}
-
-# Edit DNS List
-edit_dns() {
-  nano "$DNS_FILE"
-}
-
-# Edit NS List
-edit_ns() {
-  nano "$NS_FILE"
-}
-
-# Edit Gateway List
-edit_gateway() {
-  nano "$GW_FILE"
-}
-
-# Start DNSTT Keep-Alive
-start_dnstt() {
-  show_header
-  echo -e "${PINK}[+] Starting DNSTT Client...${NC}"
-  NS=$(head -n1 "$NS_FILE")
-  DNS=$(head -n1 "$DNS_FILE")
-  GW=$(head -n1 "$GW_FILE")
-  echo -e "${PINK}Using NS: $NS, DNS: $DNS, GW: $GW${NC}"
-  $DNSTT_BIN -r 127.0.0.1:2222 "$NS" "$DNS" &
-  echo -e "${PINK}[+] DNSTT Client Started${NC}"
-  sleep 2
-}
-
-# Main Menu
-main_menu() {
-  while true; do
-    show_header
-    echo -e "${PINK}[1] Edit DNS Servers"
-    echo -e "[2] Edit Nameservers (NS)"
-    echo -e "[3] Edit Gateways"
-    echo -e "[4] Start DNSTT Script"
-    echo -e "[5] Install Requirements"
-    echo -e "[0] Exit${NC}"
-    echo -ne "${PINK}Choose: ${NC}"
-    read -r choice
-    case "$choice" in
-      1) edit_dns ;;
-      2) edit_ns ;;
-      3) edit_gateway ;;
-      4) start_dnstt ;;
-      5) install_requirements ;;
-      0) echo -e "${PINK}Goodbye! 💕${NC}"; exit ;;
-      *) echo -e "${PINK}Invalid option.${NC}"; sleep 1 ;;
+# Detect architecture
+get_arch() {
+    case "$(uname -m)" in
+        aarch64) echo "aarch64" ;;
+        x86_64) echo "x86_64" ;;
+        armv7l|armv8l|arm) echo "arm" ;;  # 32-bit ARM
+        i*86) echo "i686" ;;
+        *) echo "unknown" ;;
     esac
-  done
 }
 
-# Run
-loading_screen
-main_menu
+# Check for Termux environment
+if [ ! -d "/data/data/com.termux" ]; then
+    echo -e "${PINK}This script is for Termux only!${NC}"
+    exit 1
+fi
+
+ARCH_TYPE="$(get_arch)"
+if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
+    echo -e "${PINK}Unsupported architecture: $ARCH_TYPE${NC}"
+    echo -e "${PINK}Only aarch64, arm, and x86_64 are supported.${NC}"
+    exit 1
+fi
+
+# Trap for generic error handling
+handle_error() {
+    echo -e "\n${PINK}An error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "${PINK}Possible fixes:${NC}"
+    echo -e "${PINK}1. Check your internet connection"
+    echo -e "2. Run 'apt update && apt upgrade -y'${NC}"
+    exit 1
+}
+trap 'handle_error' ERR
+
+clear_screen() {
+    clear
+}
+
+run_silently() {
+    eval "$1" >/dev/null 2>&1 || return 1
+}
+
+show_header() {
+    clear_screen
+    echo -e "${PINK}╔══════════════════════════╗${NC}"
+    echo -e "${PINK}  GeoDevz69 Termux Script  ${NC}"
+    echo -e "${PINK}       Version: $VER        ${NC}"
+    echo -e "${PINK}╚══════════════════════════╝${NC}"
+    echo
+}
+
+show_loading_bar() {
+    echo -e "${PINK}Installing Termux Script...${NC}"
+    echo
+
+    local width=20
+    local progress=0
+    local ARCH="$(get_arch)"
+    local URL_BASE="https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main"
+    local SCRIPT_NAME="termux-script-version-$VER"
+
+    while [ $progress -lt 100 ]; do
+        case $progress in
+            0) run_silently "rm -rf install"; progress=10 ;;
+            10) run_silently "apt update -y"; progress=20 ;;
+            20) run_silently "apt install -y wget"; progress=30 ;;
+            30) run_silently "apt install -y dnsutils"; progress=40 ;;
+            40) run_silently "apt install -y nano"; progress=50 ;;
+            50) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
+            70) run_silently "chmod +x $SCRIPT_NAME"; progress=80 ;;
+            80) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=100 ;;
+        esac
+
+        # Draw progress bar
+        filled=$((progress * width / 100))
+        bar="["
+        for ((i=0; i<filled; i++)); do bar+="■"; done
+        for ((i=filled; i<width; i++)); do bar+=" "; done
+        bar+="]"
+
+        printf "\r${PINK}%s %3d%%%s" "$bar" "$progress" "$NC"
+        sleep 0.2
+    done
+    printf "\n"
+}
+
+main_installation() {
+    show_header
+    show_loading_bar
+    echo
+    echo -e "${PINK}╔══════════════════════════╗${NC}"
+    echo -e "${PINK}   INSTALLATION COMPLETE   ${NC}"
+    echo -e "${PINK}╚══════════════════════════╝${NC}"
+    echo
+    echo -e "${PINK}TERMUX SCRIPT by GeoDevz69${NC}"
+    echo -e "${PINK}GitHub: GTM-BOOSTER-SCRIPT-2025${NC}"
+    echo
+    echo -e "${PINK}Press Enter to continue...${NC}"
+    read -p ""
+}
+
+main_installation
+
+echo -e "${PINK}Ready! Type 'menu' to start. 💻💕${NC}"

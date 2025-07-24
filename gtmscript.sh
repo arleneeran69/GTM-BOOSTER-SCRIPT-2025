@@ -1,131 +1,127 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux Script v4.2.3 - GeoDevz69 Full Pink UI
+# Termux Script v4.2.3 – Pink UI, DNS/NS/GW Editor, DNSTT, Fastdig
+# Author: Geodevz69 
 
 # Colors
 PINK='\033[1;35m'
+WHITE='\033[1;37m'
 NC='\033[0m'
 
-VER="4.2.3"
+# Paths
+DNS_FILE="$HOME/.dns_list"
+NS_FILE="$HOME/.ns_list"
+GW_FILE="$HOME/.gw_list"
+FASTDIG_BIN="$HOME/go/bin/fastdig"
+DNSTT_BIN="$HOME/go/bin/dnstt-client"
 
-get_arch() {
-    case "$(uname -m)" in
-        aarch64) echo "aarch64" ;;
-        x86_64) echo "x86_64" ;;
-        armv7l|armv8l|arm) echo "arm" ;;
-        i*86) echo "i686" ;;
-        *) echo "unknown" ;;
-    esac
-}
+# Ensure files exist
+touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-if [ ! -d "/data/data/com.termux" ]; then
-    echo -e "${PINK}This script is for Termux only!${NC}"
-    exit 1
-fi
-
-ARCH_TYPE="$(get_arch)"
-if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
-    echo -e "${PINK}Unsupported architecture: $ARCH_TYPE${NC}"
-    echo -e "${PINK}Only aarch64, arm, and x86_64 are supported.${NC}"
-    exit 1
-fi
-
-handle_error() {
-    echo -e "\n${PINK}An error occurred at ${progress:-unknown}%!${NC}"
-    echo -e "${PINK}1. Check your internet connection"
-    echo -e "2. Run 'apt update && apt upgrade -y'${NC}"
-    exit 1
-}
-trap 'handle_error' ERR
-
-clear_screen() {
-    clear
-}
-
-run_silently() {
-    eval "$1" >/dev/null 2>&1 || return 1
-}
-
+# Header UI
 show_header() {
-    clear_screen
-    echo -e "${PINK}┌──────────────────────────────┐${NC}"
-    echo -e "${PINK}│     GeoDevz69 Termux Script  │${NC}"
-    echo -e "${PINK}│        Version: $VER         │${NC}"
-    echo -e "${PINK}├──────────────────────────────┤${NC}"
-    echo -e "${PINK}│ DNS: 1  NS: 0  Delay: 5s      │${NC}"
-    echo -e "${PINK}└──────────────────────────────┘${NC}"
-    echo
+  clear
+  echo -e "${PINK}┌────────────────────────────────────┐"
+  echo -e "│     GeoDevz Termux Script v4.2.3 │"
+  echo -e "├────────────────────────────────────┤"
+  echo -e "│ DNS: $(wc -l < $DNS_FILE)  NS: $(wc -l < $NS_FILE)  GW: $(wc -l < $GW_FILE) │"
+  echo -e "└────────────────────────────────────┘${NC}"
 }
 
-show_loading_bar() {
-    echo -e "${PINK}Installing Termux Script...${NC}"
-    echo
-
-    local width=20
-    local progress=0
-    local URL_BASE="https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main"
-    local SCRIPT_NAME="termux-script-version-$VER"
-
-    while [ $progress -lt 100 ]; do
-        case $progress in
-            0) run_silently "rm -rf install"; progress=10 ;;
-            10) run_silently "apt update -y"; progress=20 ;;
-            20) run_silently "apt install -y wget"; progress=30 ;;
-            30) run_silently "apt install -y dnsutils"; progress=40 ;;
-            40) run_silently "apt install -y nano"; progress=50 ;;
-            50) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
-            70) run_silently "chmod +x $SCRIPT_NAME"; progress=80 ;;
-            80) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=100 ;;
-        esac
-
-        filled=$((progress * width / 100))
-        bar="["
-        for ((i=0; i<filled; i++)); do bar+="■"; done
-        for ((i=filled; i<width; i++)); do bar+=" "; done
-        bar+="]"
-
-        printf "\r%s %3d%%" "$bar" "$progress"
-        sleep 0.2
-    done
-    printf "\n"
+# Pink Loading Screen
+loading_screen() {
+  echo -e "${PINK}Loading"
+  for i in {1..3}; do
+    echo -n "."
+    sleep 0.5
+  done
+  echo -e "${NC}"
 }
 
-show_main_menu() {
-    echo -e "${PINK}┌──────────────────────────────┐${NC}"
-    echo -e "${PINK}│          Main Menu           │${NC}"
-    echo -e "${PINK}├──────────────────────────────┤${NC}"
-    echo -e "${PINK}│ 1. DNS Management            │${NC}"
-    echo -e "${PINK}│ 2. NS Management             │${NC}"
-    echo -e "${PINK}│ 3. Set Loop Delay            │${NC}"
-    echo -e "${PINK}│ 4. Start Digging             │${NC}"
-    echo -e "${PINK}│ 5. IP Scanner                │${NC}"
-    echo -e "${PINK}│ 6. Check for Update          │${NC}"
-    echo -e "${PINK}│ 0. Exit                      │${NC}"
-    echo -e "${PINK}└──────────────────────────────┘${NC}"
-    echo -ne "${PINK}Option: ${NC}"
-    read choice
+# Install Requirements
+install_requirements() {
+  pkg install -y curl wget nano proot tar git || exit 1
+  # Install Fastdig
+  if [ ! -f "$FASTDIG_BIN" ]; then
+    echo -e "${PINK}[+] Installing Fastdig...${NC}"
+    git clone https://github.com/geo-dns/fastdig.git $HOME/fastdig-src
+    cd $HOME/fastdig-src && make && cp fastdig "$FASTDIG_BIN"
+  fi
+  # Download DNSTT client if not available
+  if [ ! -f "$DNSTT_BIN" ]; then
+    echo -e "${PINK}[+] Installing DNSTT client...${NC}"
+    mkdir -p $(dirname $DNSTT_BIN)
+    curl -sLo $DNSTT_BIN https://raw.githubusercontent.com/geo-dns/dnstt-client/main/dnstt-client && chmod +x $DNSTT_BIN
+  fi
+}
+
+# Edit DNS List
+edit_dns() {
+  nano "$DNS_FILE"
+}
+
+# Edit NS List
+edit_ns() {
+  nano "$NS_FILE"
+}
+
+# Edit Gateway List
+edit_gateway() {
+  nano "$GW_FILE"
+}
+
+# Start DNSTT Keep-Alive
+start_dnstt() {
+  show_header
+  echo -e "${PINK}[+] Starting DNSTT Client...${NC}"
+  # Example launch - adjust as needed
+  NS=$(head -n1 $NS_FILE)
+  DNS=$(head -n1 $DNS_FILE)
+  GW=$(head -n1 $GW_FILE)
+  echo -e "${PINK}Using NS: $NS, DNS: $DNS, GW: $GW${NC}"
+  # Launch DNSTT (Placeholder)
+  $DNSTT_BIN -r 127.0.0.1:2222 "$NS" "$DNS" &
+  echo -e "${PINK}[+] DNSTT Client Started (Mock)${NC}"
+  sleep 2
+}
+
+# Show Fastest DNS Using Fastdig
+show_fastest_dns() {
+  echo -e "${PINK}Testing DNS Response Times...${NC}"
+  while read -r dns; do
+    [ -z "$dns" ] && continue
+    t=$($FASTDIG_BIN @$dns google.com | grep "Query time" | awk '{print $4}')
+    echo -e "${PINK}DNS: $dns -> ${WHITE}${t}ms${NC}"
+  done < "$DNS_FILE"
+  echo ""
+  read -p "Press enter to return to menu..."
+}
+
+# Main Menu
+main_menu() {
+  while true; do
+    show_header
+    echo -e "${PINK}[1] Edit DNS Servers"
+    echo -e "[2] Edit Nameservers (NS)"
+    echo -e "[3] Edit Gateways"
+    echo -e "[4] Start DNSTT Script"
+    echo -e "[5] Show Fastest DNS (Fastdig)"
+    echo -e "[6] Install Requirements"
+    echo -e "[0] Exit${NC}"
+    echo -ne "${PINK}Choose: ${NC}"
+    read -r choice
     case "$choice" in
-        1) echo -e "${PINK}DNS menu placeholder${NC}";;
-        2) echo -e "${PINK}NS menu placeholder${NC}";;
-        3) echo -e "${PINK}Set delay...${NC}";;
-        4) echo -e "${PINK}Starting dig...${NC}";;
-        5) echo -e "${PINK}Scanning IPs...${NC}";;
-        6) echo -e "${PINK}Checking for updates...${NC}";;
-        0) echo -e "${PINK}Goodbye!${NC}"; exit 0;;
-        *) echo -e "${PINK}Invalid option${NC}";;
+      1) edit_dns ;;
+      2) edit_ns ;;
+      3) edit_gateway ;;
+      4) start_dnstt ;;
+      5) show_fastest_dns ;;
+      6) install_requirements ;;
+      0) echo -e "${PINK}Goodbye! 💕${NC}"; exit ;;
+      *) echo -e "${PINK}Invalid option.${NC}"; sleep 1 ;;
     esac
+  done
 }
 
-main_installation() {
-    show_header
-    show_loading_bar
-    echo -e "${PINK}┌──────────────────────────────┐${NC}"
-    echo -e "${PINK}│   INSTALLATION COMPLETE      │${NC}"
-    echo -e "${PINK}└──────────────────────────────┘${NC}"
-    echo -e "${PINK}Press Enter to continue...${NC}"
-    read -p ""
-    show_header
-    show_main_menu
-}
-
-main_installation
-echo -e "${PINK}Ready! Type 'menu' to start this later.${NC}"
+# Run
+loading_screen
+main_menu

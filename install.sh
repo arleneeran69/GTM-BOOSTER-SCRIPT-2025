@@ -50,10 +50,10 @@ edit_ns_file() {
     nano "$NS_FILE"
 }
 
-# Monitor function
+# Enhanced monitor with latency
 start_monitor() {
     clear
-    echo -e "${PINK}Starting DNS Monitor...${NC}"
+    echo -e "${PINK}Starting DNS Monitor with response times...${NC}"
     sleep 1
 
     echo -e "${PINK}Loading DNS...${NC}"
@@ -88,12 +88,34 @@ start_monitor() {
     for gw in "${GW_LIST[@]}"; do echo -e "${PINK}- $gw${NC}"; done
     echo -e "${PINK}──────────────────────────────${NC}"
 
-    echo -e "${PINK}[✓] Monitor ready. Press Ctrl+C to return.${NC}"
+    echo -e "${PINK}[✓] Monitor ready. Measuring latency...${NC}"
+    
     while true; do
+        echo -e "\n${PINK}Checking DNS Servers:${NC}"
+        for ip in "${DNS_LIST[@]}"; do
+            ms=$(ping -c 1 -W 1 "$ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            [[ -z "$ms" ]] && ms="timeout"
+            echo -e "${PINK}• $ip → ${ms} ms${NC}"
+        done
+
+        echo -e "\n${PINK}Checking NS Servers:${NC}"
+        for entry in "${NS_LIST[@]}"; do
+            ns_ip=$(echo "$entry" | awk '{print $2}')
+            ns_host=$(echo "$entry" | awk '{print $1}')
+            ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            [[ -z "$ms" ]] && ms="timeout"
+            echo -e "${PINK}• $ns_host ($ns_ip) → ${ms} ms${NC}"
+        done
+
+        echo -e "\n${PINK}Checking Gateway IPs:${NC}"
+        for gw in "${GW_LIST[@]}"; do
+            ms=$(ping -c 1 -W 1 "$gw" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            [[ -z "$ms" ]] && ms="timeout"
+            echo -e "${PINK}• $gw → ${ms} ms${NC}"
+        done
+
+        echo -e "${PINK}──────────────────────────────${NC}"
         sleep 5
-        echo -ne "${PINK}Checking... ${NC}"
-        # Add monitor logic here (ping/check dig etc)
-        echo -e "${PINK}OK${NC}"
     done
 }
 

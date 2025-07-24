@@ -1,7 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux Script v4.2.2 - GeoDevz69 💕 with Full Menu + Setup Shortcut
+# Termux Script v4.2.3 - GeoDevz69 💕 with Pink Menu + Fastdig/DNSTT included
 
 # Colors
+PINK='\033[1;35m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -10,7 +11,7 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-VER="4.2.2"
+VER="4.2.3"
 BIN_DIR="$HOME/go/bin"
 GATEWAY_FILE="$HOME/gateways.txt"
 DNS_FILE="$HOME/dns.txt"
@@ -62,10 +63,10 @@ add_to_path() {
 
 show_header() {
     clear_screen
-    echo -e "${WHITE}╔══════════════════════════╗${NC}"
-    echo -e "${WHITE}  GeoDevz69 💕 Termux Script${NC}"
-    echo -e "${WHITE}       Version: $VER        ${NC}"
-    echo -e "${WHITE}╚══════════════════════════╝${NC}"
+    echo -e "${PINK}╔══════════════════════════╗${NC}"
+    echo -e "${PINK}  GeoDevz69 💕 Termux Script${NC}"
+    echo -e "${PINK}       Version: $VER        ${NC}"
+    echo -e "${PINK}╚══════════════════════════╝${NC}"
     echo
 }
 
@@ -120,9 +121,9 @@ main_installation() {
     show_header
     show_loading_bar
     echo
-    echo -e "${WHITE}╔══════════════════════════╗${NC}"
-    echo -e "${WHITE}   INSTALLATION COMPLETE   ${NC}"
-    echo -e "${WHITE}╚══════════════════════════╝${NC}"
+    echo -e "${PINK}╔══════════════════════════╗${NC}"
+    echo -e "${PINK}   INSTALLATION COMPLETE   ${NC}"
+    echo -e "${PINK}╚══════════════════════════╝${NC}"
     echo
     echo -e "${CYAN}TERMUX SCRIPT by GeoDevz69 💕${NC}"
     echo -e "${BLUE}https://github.com/GeoDevz69${NC}"
@@ -158,9 +159,9 @@ start_dnstt_client() {
 show_menu() {
     while true; do
         clear_screen
-        echo -e "${WHITE}╔════════════════════════════╗${NC}"
-        echo -e "${WHITE}       TERMUX MAIN MENU      ${NC}"
-        echo -e "${WHITE}╚════════════════════════════╝${NC}"
+        echo -e "${PINK}╔════════════════════════════╗${NC}"
+        echo -e "${PINK}       TERMUX MAIN MENU      ${NC}"
+        echo -e "${PINK}╚════════════════════════════╝${NC}"
         echo -e "${GREEN}[1]${NC} Edit DNS Servers"
         echo -e "${GREEN}[2]${NC} Edit NS (Nameservers)"
         echo -e "${GREEN}[3]${NC} Edit Gateways"

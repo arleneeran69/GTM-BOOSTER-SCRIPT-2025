@@ -21,33 +21,38 @@ get_arch() {
 
 # Check for Termux environment
 if [ ! -d "/data/data/com.termux" ]; then
-    echo -e "${PINK}This script is for Termux only!${NC}"
+    echo -e "${PINK}🚫 This script is for Termux only!${NC}"
     exit 1
 fi
 
+# Architecture check
 ARCH_TYPE="$(get_arch)"
 if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
-    echo -e "${PINK}Unsupported architecture: $ARCH_TYPE${NC}"
-    echo -e "${PINK}Only aarch64, arm, and x86_64 are supported.${NC}"
+    echo -e "${PINK}❌ Unsupported architecture: $ARCH_TYPE${NC}"
+    echo -e "${PINK}🔧 Only aarch64, arm, and x86_64 are supported.${NC}"
     exit 1
 fi
 
-# Trap for generic error handling
+# Trap for error handling
 handle_error() {
-    echo -e "\n${PINK}⚠️  An error occurred at ${progress:-unknown}%!${NC}"
-    echo -e "${PINK}💡 Possible fixes:"
-    echo -e "1. Check your internet connection"
-    echo -e "2. Run: apt update && apt upgrade -y${NC}"
+    echo -e "\n${PINK}⚠️  An error occurred!${NC}"
+    echo -e "${PINK}💡 Recommendations:${NC}"
+    echo -e "${PINK}   1. Check your internet connection${NC}"
+    echo -e "${PINK}   2. Run: apt update && apt upgrade -y${NC}"
+    echo -e "${PINK}   3. Make sure storage permission is allowed${NC}"
     exit 1
 }
 trap 'handle_error' ERR
 
+# Clear screen
 clear_screen() { clear; }
 
+# Run silently
 run_silently() {
     eval "$1" >/dev/null 2>&1 || return 1
 }
 
+# Show header
 show_header() {
     clear_screen
     echo -e "${PINK}┌──────────────────────────────┐"
@@ -57,8 +62,9 @@ show_header() {
     echo
 }
 
+# Show loading bar
 show_loading_bar() {
-    echo -e "${PINK}Installing Termux Script...${NC}"
+    echo -e "${PINK}📦 Installing Termux Script...${NC}"
     echo
 
     local width=20
@@ -91,19 +97,22 @@ show_loading_bar() {
     printf "\n"
 }
 
+# Main install
 main_installation() {
     show_header
     show_loading_bar
     echo
     echo -e "${PINK}┌──────────────────────────────┐"
-    echo -e "${PINK}│     INSTALLATION COMPLETE    │"
+    echo -e "${PINK}│     ✅ INSTALL COMPLETE       │"
     echo -e "${PINK}└──────────────────────────────┘${NC}"
     echo
-    echo -e "${PINK}📡 Optimized with Fastest DNS:"
-    echo -e "    • Cloudflare (1.1.1.1)"
-    echo -e "    • Google (8.8.8.8)${NC}"
+    echo -e "${PINK}📡 Optimized DNS Servers:"
+    echo -e "${PINK}   • Cloudflare: 1.1.1.1"
+    echo -e "   • Google:     8.8.8.8${NC}"
     echo
     echo -e "${PINK}🌐 https://phcorner.net/members/geodevz69.696969${NC}"
+    echo
+    echo -e "${PINK}💡 Tip: Type ${NC}menu${PINK} to launch your menu anytime!${NC}"
     echo
     echo -e "${PINK}Press Enter to continue...${NC}"
     read -p ""

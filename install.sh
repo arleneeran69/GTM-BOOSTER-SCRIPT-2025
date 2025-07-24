@@ -108,6 +108,7 @@ check_dns_ips() {
   done
 }
 
+# ✅ FIXED NS CHECK FUNCTION
 check_servers() {
   echo -e "\n🔍 Checking NS Servers:"
   fail_count=0; best_ns=""; best_ping=9999
@@ -119,6 +120,7 @@ check_servers() {
 
     echo -e "[•] $domain @ $ip"
 
+    # Ping check
     ping_ms=$(ping -c1 -W2 "$ip" 2>/dev/null | grep 'time=' | awk -F'time=' '{print int($2)}')
     if [[ -n "$ping_ms" ]]; then
       echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
@@ -127,6 +129,7 @@ check_servers() {
       echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
     fi
 
+    # DNS query check (uses NOERROR to verify success)
     dig_out=$(timeout -k 3 3 "$_DIG" @"$ip" "$domain" 2>/dev/null)
     if echo "$dig_out" | grep -q "NOERROR"; then
       echo -e "    ${GREEN}✓ DNS Query OK${NC}"
@@ -159,27 +162,14 @@ start_monitor() {
 }
 
 # ===== Menu ====
-edit_dns_only() {
-  echo -e "${YELLOW}Editing DNS IPs only...${NC}"
-  sleep 1
-  nano "$DNS_FILE"
-  exec bash "$0"
-}
-
+edit_dns_only() { echo -e "${YELLOW}Editing DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; exec bash "$0"; }
 edit_ns_only() {
   echo -e "${YELLOW}Editing NS Servers (Domain IPs)...${NC}"
-  echo -e "${CYAN}# Format: domain IP (Ex: example.com 1.1.1.1)${NC}"
-  sleep 1
-  nano "$NS_FILE"
-  exec bash "$0"
+  echo "# Format: domain IP" > "$NS_FILE"
+  echo "# Ex: example.com 1.1.1.1" >> "$NS_FILE"
+  sleep 1; nano "$NS_FILE"; exec bash "$0"
 }
-
-edit_gateways_only() {
-  echo -e "${YELLOW}Editing Gateway IPs...${NC}"
-  sleep 1
-  nano "$GW_FILE"
-  exec bash "$0"
-}
+edit_gateways_only() { echo -e "${YELLOW}Editing Gateway IPs...${NC}"; sleep 1; nano "$GW_FILE"; exec bash "$0"; }
 
 clear
 echo -e "${PINK}╔═══════════════════════════════╗"

@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux Script v4.2.3 - Modified by GeoDevz69 - Pink Menu + Fastdig/DNSTT included
+# Termux Script v4.2.3 - Modified - Full Pink Menu + Fastdig/DNSTT Included
 
 # Colors
 PINK='\033[1;35m'
@@ -15,6 +15,7 @@ BIN_DIR="$HOME/go/bin"
 GATEWAY_FILE="$HOME/gateways.txt"
 DNS_FILE="$HOME/dns.txt"
 NS_FILE="$HOME/ns.txt"
+LOOP_DELAY="5"
 
 get_arch() {
     case "$(uname -m)" in
@@ -62,10 +63,10 @@ add_to_path() {
 
 show_header() {
     clear_screen
-    echo -e "${PINK}╔════════════════════════════════════╗${NC}"
-    echo -e "${PINK}     Termux Script Menu v$VER         ${NC}"
-    echo -e "${PINK}   Modified & Maintained by GeoDevz69 ${NC}"
-    echo -e "${PINK}╚════════════════════════════════════╝${NC}"
+    echo -e "${PINK}┌────────────────────────────────────┐${NC}"
+    echo -e "${PINK}│   Termux Script v$VER               │${NC}"
+    echo -e "${PINK}│    Modified by GeoDevz69           │${NC}"
+    echo -e "${PINK}└────────────────────────────────────┘${NC}"
     echo
 }
 
@@ -120,34 +121,34 @@ main_installation() {
     show_header
     show_loading_bar
     echo
-    echo -e "${PINK}╔════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}   ✅ INSTALLATION COMPLETE ✅       ${NC}"
-    echo -e "${PINK}╚════════════════════════════════════╝${NC}"
+    echo -e "${PINK}┌────────────────────────────────────┐${NC}"
+    echo -e "${GREEN}     ✅ INSTALLATION COMPLETE        ${NC}"
+    echo -e "${PINK}└────────────────────────────────────┘${NC}"
     echo
     echo -e "${PINK}Type '${YELLOW}setup-now${PINK}' to start.${NC}"
     echo
 }
 
 edit_gateway_menu() {
-    echo -e "${PINK}╔════════════════════════╗${NC}"
-    echo -e "${CYAN}     ✅ Edit Gateways [Fast]${NC}"
-    echo -e "${PINK}╚════════════════════════╝${NC}"
+    echo -e "${PINK}┌──────────────────────────────┐${NC}"
+    echo -e "${PINK}│     ✨ Edit Gateways         │${NC}"
+    echo -e "${PINK}└──────────────────────────────┘${NC}"
     [ ! -f "$GATEWAY_FILE" ] && echo "# Add gateway IPs" > "$GATEWAY_FILE"
     nano "$GATEWAY_FILE"
 }
 
 edit_dns_menu() {
-    echo -e "${PINK}╔════════════════════════╗${NC}"
-    echo -e "${CYAN}     ✅ Edit DNS [Fast]${NC}"
-    echo -e "${PINK}╚════════════════════════╝${NC}"
+    echo -e "${PINK}┌──────────────────────────────┐${NC}"
+    echo -e "${PINK}│     ✨ Edit DNS Servers      │${NC}"
+    echo -e "${PINK}└──────────────────────────────┘${NC}"
     [ ! -f "$DNS_FILE" ] && echo "124.6.181.25" > "$DNS_FILE"
     nano "$DNS_FILE"
 }
 
 edit_ns_menu() {
-    echo -e "${PINK}╔════════════════════════╗${NC}"
-    echo -e "${RED}     ❌ Edit NS [Slow]${NC}"
-    echo -e "${PINK}╚════════════════════════╝${NC}"
+    echo -e "${PINK}┌──────────────────────────────┐${NC}"
+    echo -e "${PINK}│     ❌ Edit NS Entries       │${NC}"
+    echo -e "${PINK}└──────────────────────────────┘${NC}"
     [ ! -f "$NS_FILE" ] && echo "# Add NS entries" > "$NS_FILE"
     nano "$NS_FILE"
 }
@@ -158,31 +159,48 @@ start_dnstt_client() {
     sleep 2
 }
 
+show_legacy_style_menu() {
+    local dns_count ns_count
+    dns_count=$(grep -c '.' "$DNS_FILE" 2>/dev/null || echo 0)
+    ns_count=$(grep -c '.' "$NS_FILE" 2>/dev/null || echo 0)
+
+    echo -e "${PINK}┌──────────────────────────────┐${NC}"
+    echo -e "${PINK}│  GeoDevz69 Termux Script     │${NC}"
+    echo -e "${PINK}│        Version: $VER         │${NC}"
+    echo -e "${PINK}├──────────────────────────────┤${NC}"
+    echo -e "${PINK}│  DNS: $dns_count  NS: $ns_count  Delay: ${LOOP_DELAY}s │${NC}"
+    echo -e "${PINK}└──────────────────────────────┘${NC}"
+    echo -e "${PINK}┌──────────────────────────────┐${NC}"
+    echo -e "${PINK}│         Main Menu            │${NC}"
+    echo -e "${PINK}├──────────────────────────────┤${NC}"
+    echo -e "${PINK}│ 1. DNS Management            │${NC}"
+    echo -e "${PINK}│ 2. NS Management             │${NC}"
+    echo -e "${PINK}│ 3. Set Loop Delay            │${NC}"
+    echo -e "${PINK}│ 4. Start Digging             │${NC}"
+    echo -e "${PINK}│ 5. IP Scanner                │${NC}"
+    echo -e "${PINK}│ 6. Check for Update          │${NC}"
+    echo -e "${PINK}│ 0. Exit                      │${NC}"
+    echo -e "${PINK}└──────────────────────────────┘${NC}"
+    echo -ne "${PINK}Option: ${NC}"
+}
+
 show_menu() {
     while true; do
         clear_screen
-        echo -e "${PINK}╔════════════════════════════════════╗${NC}"
-        echo -e "${PINK}         TERMUX MAIN MENU            ${NC}"
-        echo -e "${PINK}╠════════════════════════════════════╣${NC}"
-        echo -e "${PINK}║ [1] ✅ Edit DNS Servers           ║${NC}"
-        echo -e "${PINK}║ [2] ❌ Edit NS Entries            ║${NC}"
-        echo -e "${PINK}║ [3] ✅ Edit Gateways              ║${NC}"
-        echo -e "${PINK}║ [4] ✅ Run DNSTT Client           ║${NC}"
-        echo -e "${PINK}║ [5] ✅ Reinstall Tools            ║${NC}"
-        echo -e "${PINK}║ [0] Exit                          ║${NC}"
-        echo -e "${PINK}╚════════════════════════════════════╝${NC}"
-        echo -ne "${PINK}Choose: ${NC}"
+        show_legacy_style_menu
         read -r opt
         case "$opt" in
             1) edit_dns_menu ;;
             2) edit_ns_menu ;;
-            3) edit_gateway_menu ;;
+            3) echo -e "${YELLOW}Set loop delay not implemented${NC}"; sleep 1 ;;
             4) start_dnstt_client ;;
-            5) main_installation ;;
-            0) echo -e "${YELLOW}Goodbye! Modified by GeoDevz69${NC}"; exit 0 ;;
+            5) echo -e "${YELLOW}IP Scanner not implemented${NC}"; sleep 1 ;;
+            6) echo -e "${YELLOW}Update check not implemented${NC}"; sleep 1 ;;
+            0) echo -e "${YELLOW}Goodbye from GeoDevz69!${NC}"; exit 0 ;;
             *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
         esac
     done
 }
 
 main_installation
+show_menu

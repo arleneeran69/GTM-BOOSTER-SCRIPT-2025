@@ -1,14 +1,13 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux Script v4.2.3 - GeoDevz69 💕 with Pink Menu + Fastdig/DNSTT included
+# Termux Script v4.2.3 - Modified by GeoDevz69 - Pink Menu + Fastdig/DNSTT included
 
 # Colors
 PINK='\033[1;35m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
 WHITE='\033[1;37m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 VER="4.2.3"
@@ -40,7 +39,7 @@ if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "
 fi
 
 handle_error() {
-    echo -e "\n${RED}Error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "\n${RED}❌ Error occurred at ${progress:-unknown}%!${NC}"
     echo -e "${YELLOW}Fix tips:${NC}"
     echo -e "${WHITE}1. Check internet connection"
     echo -e "2. Run: apt update && apt upgrade -y${NC}"
@@ -63,15 +62,15 @@ add_to_path() {
 
 show_header() {
     clear_screen
-    echo -e "${PINK}╔══════════════════════════╗${NC}"
-    echo -e "${PINK}  GeoDevz69 💕 Termux Script${NC}"
-    echo -e "${PINK}       Version: $VER        ${NC}"
-    echo -e "${PINK}╚══════════════════════════╝${NC}"
+    echo -e "${PINK}╔════════════════════════════════════╗${NC}"
+    echo -e "${PINK}     Termux Script Menu v$VER         ${NC}"
+    echo -e "${PINK}   Modified & Maintained by GeoDevz69 ${NC}"
+    echo -e "${PINK}╚════════════════════════════════════╝${NC}"
     echo
 }
 
 show_loading_bar() {
-    echo -e "${WHITE}Installing Termux Script...${NC}"
+    echo -e "${PINK}Installing Termux Script...${NC}"
     echo
 
     local width=20
@@ -121,37 +120,40 @@ main_installation() {
     show_header
     show_loading_bar
     echo
-    echo -e "${PINK}╔══════════════════════════╗${NC}"
-    echo -e "${PINK}   INSTALLATION COMPLETE   ${NC}"
-    echo -e "${PINK}╚══════════════════════════╝${NC}"
+    echo -e "${PINK}╔════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}   ✅ INSTALLATION COMPLETE ✅       ${NC}"
+    echo -e "${PINK}╚════════════════════════════════════╝${NC}"
     echo
-    echo -e "${CYAN}TERMUX SCRIPT by GeoDevz69 💕${NC}"
-    echo -e "${BLUE}https://github.com/GeoDevz69${NC}"
-    echo
-    echo -e "${GREEN}Type '${YELLOW}setup-now${GREEN}' to start.${NC}"
+    echo -e "${PINK}Type '${YELLOW}setup-now${PINK}' to start.${NC}"
     echo
 }
 
 edit_gateway_menu() {
-    echo -e "${CYAN}Edit Gateways${NC}"
+    echo -e "${PINK}╔════════════════════════╗${NC}"
+    echo -e "${CYAN}     ✅ Edit Gateways [Fast]${NC}"
+    echo -e "${PINK}╚════════════════════════╝${NC}"
     [ ! -f "$GATEWAY_FILE" ] && echo "# Add gateway IPs" > "$GATEWAY_FILE"
     nano "$GATEWAY_FILE"
 }
 
 edit_dns_menu() {
-    echo -e "${CYAN}Edit DNS Servers${NC}"
+    echo -e "${PINK}╔════════════════════════╗${NC}"
+    echo -e "${CYAN}     ✅ Edit DNS [Fast]${NC}"
+    echo -e "${PINK}╚════════════════════════╝${NC}"
     [ ! -f "$DNS_FILE" ] && echo "124.6.181.25" > "$DNS_FILE"
     nano "$DNS_FILE"
 }
 
 edit_ns_menu() {
-    echo -e "${CYAN}Edit NS (NameServers)${NC}"
+    echo -e "${PINK}╔════════════════════════╗${NC}"
+    echo -e "${RED}     ❌ Edit NS [Slow]${NC}"
+    echo -e "${PINK}╚════════════════════════╝${NC}"
     [ ! -f "$NS_FILE" ] && echo "# Add NS entries" > "$NS_FILE"
     nano "$NS_FILE"
 }
 
 start_dnstt_client() {
-    echo -e "${YELLOW}Running DNSTT Client...${NC}"
+    echo -e "${GREEN}✅ Running DNSTT Client [Fast]...${NC}"
     "$BIN_DIR/dnstt-client" --help 2>/dev/null || echo -e "${RED}DNSTT client not working.${NC}"
     sleep 2
 }
@@ -159,24 +161,25 @@ start_dnstt_client() {
 show_menu() {
     while true; do
         clear_screen
-        echo -e "${PINK}╔════════════════════════════╗${NC}"
-        echo -e "${PINK}       TERMUX MAIN MENU      ${NC}"
-        echo -e "${PINK}╚════════════════════════════╝${NC}"
-        echo -e "${GREEN}[1]${NC} Edit DNS Servers"
-        echo -e "${GREEN}[2]${NC} Edit NS (Nameservers)"
-        echo -e "${GREEN}[3]${NC} Edit Gateways"
-        echo -e "${GREEN}[4]${NC} Run DNSTT Client"
-        echo -e "${GREEN}[5]${NC} Reinstall Tools"
-        echo -e "${GREEN}[0]${NC} Exit"
-        echo
-        read -p "Choose: " opt
+        echo -e "${PINK}╔════════════════════════════════════╗${NC}"
+        echo -e "${PINK}         TERMUX MAIN MENU            ${NC}"
+        echo -e "${PINK}╠════════════════════════════════════╣${NC}"
+        echo -e "${PINK}║ [1] ✅ Edit DNS Servers           ║${NC}"
+        echo -e "${PINK}║ [2] ❌ Edit NS Entries            ║${NC}"
+        echo -e "${PINK}║ [3] ✅ Edit Gateways              ║${NC}"
+        echo -e "${PINK}║ [4] ✅ Run DNSTT Client           ║${NC}"
+        echo -e "${PINK}║ [5] ✅ Reinstall Tools            ║${NC}"
+        echo -e "${PINK}║ [0] Exit                          ║${NC}"
+        echo -e "${PINK}╚════════════════════════════════════╝${NC}"
+        echo -ne "${PINK}Choose: ${NC}"
+        read -r opt
         case "$opt" in
             1) edit_dns_menu ;;
             2) edit_ns_menu ;;
             3) edit_gateway_menu ;;
             4) start_dnstt_client ;;
             5) main_installation ;;
-            0) echo -e "${YELLOW}Goodbye.${NC}"; exit 0 ;;
+            0) echo -e "${YELLOW}Goodbye! Modified by GeoDevz69${NC}"; exit 0 ;;
             *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
         esac
     done

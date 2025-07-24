@@ -1,6 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux SCRIPT with Loading Screen, DNSTT, Fastdig, and Gateway Menu
-# Author: GeoDevz69 💕 | Version 4.2.2
+# Termux Script v4.2.2 - GeoDevz69 💕 with Full Menu + Setup Shortcut
 
 # Colors
 RED='\033[0;31m'
@@ -14,8 +13,9 @@ NC='\033[0m'
 VER="4.2.2"
 BIN_DIR="$HOME/go/bin"
 GATEWAY_FILE="$HOME/gateways.txt"
+DNS_FILE="$HOME/dns.txt"
+NS_FILE="$HOME/ns.txt"
 
-# Detect architecture
 get_arch() {
     case "$(uname -m)" in
         aarch64) echo "aarch64" ;;
@@ -26,7 +26,6 @@ get_arch() {
     esac
 }
 
-# Check for Termux environment
 if [ ! -d "/data/data/com.termux" ]; then
     echo -e "${RED}This script is for Termux only!${NC}"
     exit 1
@@ -39,22 +38,26 @@ if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "
     exit 1
 fi
 
-# Error handling
 handle_error() {
-    echo -e "\n${RED}An error occurred at ${progress:-unknown}%!${NC}"
-    echo -e "${YELLOW}Fix Tips:${NC}"
-    echo -e "${WHITE}1. Check internet"
+    echo -e "\n${RED}Error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "${YELLOW}Fix tips:${NC}"
+    echo -e "${WHITE}1. Check internet connection"
     echo -e "2. Run: apt update && apt upgrade -y${NC}"
     exit 1
 }
 trap 'handle_error' ERR
 
-clear_screen() {
-    clear
-}
+clear_screen() { clear; }
 
 run_silently() {
     eval "$1" >/dev/null 2>&1 || return 1
+}
+
+add_to_path() {
+    if ! grep -q 'export PATH=$HOME/go/bin:$PATH' ~/.bashrc; then
+        echo 'export PATH=$HOME/go/bin:$PATH' >> ~/.bashrc
+    fi
+    export PATH=$HOME/go/bin:$PATH
 }
 
 show_header() {
@@ -64,13 +67,6 @@ show_header() {
     echo -e "${WHITE}       Version: $VER        ${NC}"
     echo -e "${WHITE}╚══════════════════════════╝${NC}"
     echo
-}
-
-add_to_path() {
-    if ! grep -q 'export PATH=$HOME/go/bin:$PATH' ~/.bashrc; then
-        echo 'export PATH=$HOME/go/bin:$PATH' >> ~/.bashrc
-    fi
-    export PATH=$HOME/go/bin:$PATH
 }
 
 show_loading_bar() {
@@ -90,7 +86,7 @@ show_loading_bar() {
         aarch64) DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-arm64" ;;
         arm)     DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-arm" ;;
         x86_64)  DNSTT_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/dnstt-client-amd64" ;;
-        *)       echo -e "${RED}No dnstt binary for $ARCH${NC}"; exit 1 ;;
+        *)       echo -e "${RED}No DNSTT binary for $ARCH${NC}"; exit 1 ;;
     esac
     FASTDIG_URL="https://raw.githubusercontent.com/GeoDevz69/dnstt-binaries/main/fastdig"
 
@@ -102,13 +98,12 @@ show_loading_bar() {
             30) run_silently "apt install -y dnsutils nano"; progress=40 ;;
             40) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=50 ;;
             50) run_silently "chmod +x $SCRIPT_NAME"; progress=60 ;;
-            60) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=70 ;;
+            60) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/setup-now"; progress=70 ;;
             70) run_silently "wget -qO $BIN_DIR/dnstt-client $DNSTT_URL"; progress=80 ;;
             80) run_silently "wget -qO $BIN_DIR/fastdig $FASTDIG_URL"; progress=90 ;;
             90) run_silently "chmod +x $BIN_DIR/dnstt-client $BIN_DIR/fastdig"; progress=100 ;;
         esac
 
-        # Draw loading bar
         filled=$((progress * width / 100))
         bar="["
         for ((i=0; i<filled; i++)); do bar+="■"; done
@@ -132,28 +127,54 @@ main_installation() {
     echo -e "${CYAN}TERMUX SCRIPT by GeoDevz69 💕${NC}"
     echo -e "${BLUE}https://github.com/GeoDevz69${NC}"
     echo
-    echo -e "${YELLOW}Press Enter to continue...${NC}"
-    read -p ""
+    echo -e "${GREEN}Type '${YELLOW}setup-now${GREEN}' to start.${NC}"
+    echo
 }
 
 edit_gateway_menu() {
-    echo -e "${CYAN}GATEWAY EDITOR${NC}"
-    [ ! -f "$GATEWAY_FILE" ] && echo "# Your gateway list goes here" > "$GATEWAY_FILE"
+    echo -e "${CYAN}Edit Gateways${NC}"
+    [ ! -f "$GATEWAY_FILE" ] && echo "# Add gateway IPs" > "$GATEWAY_FILE"
     nano "$GATEWAY_FILE"
+}
+
+edit_dns_menu() {
+    echo -e "${CYAN}Edit DNS Servers${NC}"
+    [ ! -f "$DNS_FILE" ] && echo "124.6.181.25" > "$DNS_FILE"
+    nano "$DNS_FILE"
+}
+
+edit_ns_menu() {
+    echo -e "${CYAN}Edit NS (NameServers)${NC}"
+    [ ! -f "$NS_FILE" ] && echo "# Add NS entries" > "$NS_FILE"
+    nano "$NS_FILE"
+}
+
+start_dnstt_client() {
+    echo -e "${YELLOW}Running DNSTT Client...${NC}"
+    "$BIN_DIR/dnstt-client" --help 2>/dev/null || echo -e "${RED}DNSTT client not working.${NC}"
+    sleep 2
 }
 
 show_menu() {
     while true; do
         clear_screen
-        echo -e "${WHITE}╔═════════════════════╗${NC}"
-        echo -e "${WHITE}   TERMUX MAIN MENU   ${NC}"
-        echo -e "${WHITE}╚═════════════════════╝${NC}"
-        echo -e "${GREEN}[1]${NC} Edit Gateways"
+        echo -e "${WHITE}╔════════════════════════════╗${NC}"
+        echo -e "${WHITE}       TERMUX MAIN MENU      ${NC}"
+        echo -e "${WHITE}╚════════════════════════════╝${NC}"
+        echo -e "${GREEN}[1]${NC} Edit DNS Servers"
+        echo -e "${GREEN}[2]${NC} Edit NS (Nameservers)"
+        echo -e "${GREEN}[3]${NC} Edit Gateways"
+        echo -e "${GREEN}[4]${NC} Run DNSTT Client"
+        echo -e "${GREEN}[5]${NC} Reinstall Tools"
         echo -e "${GREEN}[0]${NC} Exit"
         echo
         read -p "Choose: " opt
         case "$opt" in
-            1) edit_gateway_menu ;;
+            1) edit_dns_menu ;;
+            2) edit_ns_menu ;;
+            3) edit_gateway_menu ;;
+            4) start_dnstt_client ;;
+            5) main_installation ;;
             0) echo -e "${YELLOW}Goodbye.${NC}"; exit 0 ;;
             *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
         esac
@@ -161,4 +182,3 @@ show_menu() {
 }
 
 main_installation
-show_menu

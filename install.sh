@@ -6,6 +6,7 @@
 # Colors
 PINK='\033[1;35m'
 GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
@@ -44,7 +45,7 @@ main_menu() {
     main_menu
 }
 
-# Function to edit NS with guide
+# Edit NS file with format hint
 edit_ns_file() {
     if ! grep -q "^[^#]*\.[a-zA-Z]*[[:space:]][0-9]" "$NS_FILE"; then
         echo -e "# Format: domain IP\n# Ex: ns.example.com 1.1.1.1" > "$NS_FILE"
@@ -52,7 +53,7 @@ edit_ns_file() {
     nano "$NS_FILE"
 }
 
-# Enhanced monitor with latency
+# Monitor with latency color-coded without bc
 start_monitor() {
     clear
     echo -e "${PINK}Starting DNS Monitor with response times...${NC}"
@@ -91,17 +92,19 @@ start_monitor() {
     echo -e "${PINK}──────────────────────────────${NC}"
 
     echo -e "${PINK}[✓] Monitor ready. Measuring latency...${NC}"
-    
+
     while true; do
         echo -e "\n${PINK}Checking DNS Servers:${NC}"
         for ip in "${DNS_LIST[@]}"; do
-            ms=$(ping -c 1 -W 1 "$ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            ms=$(ping -c 1 -W 1 "$ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
             if [[ -z "$ms" ]]; then
-                echo -e "${RED}• $ip → timeout${NC}"
-            elif (( $(echo "$ms < 100" | bc -l) )); then
-                echo -e "${GREEN}• $ip → $ms ms${NC}"
+                echo -e "${PINK}• $ip → ${RED}timeout${NC}"
+            elif [ "$ms" -lt 100 ]; then
+                echo -e "${PINK}• $ip → ${GREEN}${ms} ms${NC}"
+            elif [ "$ms" -lt 300 ]; then
+                echo -e "${PINK}• $ip → ${YELLOW}${ms} ms${NC}"
             else
-                echo -e "${RED}• $ip → $ms ms${NC}"
+                echo -e "${PINK}• $ip → ${RED}${ms} ms${NC}"
             fi
         done
 
@@ -109,25 +112,29 @@ start_monitor() {
         for entry in "${NS_LIST[@]}"; do
             ns_ip=$(echo "$entry" | awk '{print $2}')
             ns_host=$(echo "$entry" | awk '{print $1}')
-            ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
             if [[ -z "$ms" ]]; then
-                echo -e "${RED}• $ns_host ($ns_ip) → timeout${NC}"
-            elif (( $(echo "$ms < 100" | bc -l) )); then
-                echo -e "${GREEN}• $ns_host ($ns_ip) → $ms ms${NC}"
+                echo -e "${PINK}• $ns_host ($ns_ip) → ${RED}timeout${NC}"
+            elif [ "$ms" -lt 100 ]; then
+                echo -e "${PINK}• $ns_host ($ns_ip) → ${GREEN}${ms} ms${NC}"
+            elif [ "$ms" -lt 300 ]; then
+                echo -e "${PINK}• $ns_host ($ns_ip) → ${YELLOW}${ms} ms${NC}"
             else
-                echo -e "${RED}• $ns_host ($ns_ip) → $ms ms${NC}"
+                echo -e "${PINK}• $ns_host ($ns_ip) → ${RED}${ms} ms${NC}"
             fi
         done
 
         echo -e "\n${PINK}Checking Gateway IPs:${NC}"
         for gw in "${GW_LIST[@]}"; do
-            ms=$(ping -c 1 -W 1 "$gw" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
+            ms=$(ping -c 1 -W 1 "$gw" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
             if [[ -z "$ms" ]]; then
-                echo -e "${RED}• $gw → timeout${NC}"
-            elif (( $(echo "$ms < 100" | bc -l) )); then
-                echo -e "${GREEN}• $gw → $ms ms${NC}"
+                echo -e "${PINK}• $gw → ${RED}timeout${NC}"
+            elif [ "$ms" -lt 100 ]; then
+                echo -e "${PINK}• $gw → ${GREEN}${ms} ms${NC}"
+            elif [ "$ms" -lt 300 ]; then
+                echo -e "${PINK}• $gw → ${YELLOW}${ms} ms${NC}"
             else
-                echo -e "${RED}• $gw → $ms ms${NC}"
+                echo -e "${PINK}• $gw → ${RED}${ms} ms${NC}"
             fi
         done
 

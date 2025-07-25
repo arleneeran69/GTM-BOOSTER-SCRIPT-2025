@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Termux Script v4.3.0 - Pink UI | Globe FastDNS Booster | DNSTT Monitor
+# Termux Script v4.3.1 - Pink UI | Fixed NS Check & Latency
 # Author: GeoDevz69 💕
 
 # Colors
@@ -22,7 +22,7 @@ touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 main_menu() {
     clear
     echo -e "${PINK}┌───────────────────────────────────────────────┐"
-    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.0        │"
+    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.1        │"
     echo -e "${PINK}├───────────────────────────────────────────────┤"
     echo -e "${PINK}│ 1. Edit DNS Servers (IP only)                 │"
     echo -e "${PINK}│ 2. Edit NS (domain IP)                        │"
@@ -68,7 +68,6 @@ start_monitor() {
     echo -e "${PINK}Starting DNSTT Monitor...${NC}"
     sleep 1
 
-    # Load entries, skip comments and blanks
     DNS_LIST=()
     NS_LIST=()
     GW_LIST=()
@@ -102,11 +101,22 @@ start_monitor() {
                 echo -e "${PINK}• Invalid NS entry → ${RED}FAIL${NC}"
                 continue
             fi
-            dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +short)
-            if [[ -n "$dig_out" ]]; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC}"
+
+            # Get latency
+            ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+            if [[ -z "$ms" ]]; then
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}No ping${NC}"
+                continue
+            fi
+
+            # Check dig response
+            dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +noall +answer)
+            if [[ -z "$dig_out" ]]; then
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${RED}${ms} ms${NC}"
+            elif echo "$dig_out" | grep -q "$ns_domain"; then
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${GREEN}${ms} ms${NC}"
             else
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${YELLOW}No answer${NC} ${YELLOW}${ms} ms${NC}"
             fi
         done
 

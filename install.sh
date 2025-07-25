@@ -205,6 +205,37 @@ start_monitor() {
   echo -e "     GeoDevz Script v$VER         "
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
+  echo -e "${YELLOW}Initializing booster...${NC}"
+
+  # Booster: Restart VPN & warmup
+  echo -e "${CYAN}🔄 Restarting DNSTT VPN client...${NC}"
+  pkill -f dnstt-client 2>/dev/null
+  bash "$RESTART_CMD" &>/dev/null &
+  sleep 3
+
+  echo -e "${CYAN}⏳ Waiting for interface $VPN_INTERFACE...${NC}"
+  for i in {1..10}; do
+    ip link show "$VPN_INTERFACE" &>/dev/null && break
+    echo -ne "${PINK}  ...waiting ($i/10)\r${NC}"
+    sleep 1
+  done
+
+  ip link show "$VPN_INTERFACE" &>/dev/null || {
+    echo -e "${RED}❌ VPN interface $VPN_INTERFACE still DOWN. Aborting.${NC}"
+    sleep 2
+    return
+  }
+
+  echo -e "${CYAN}🌐 Verifying internet access through VPN...${NC}"
+  if curl -s --interface "$VPN_INTERFACE" --max-time 4 http://connectivitycheck.gstatic.com/generate_204 | grep -q "204"; then
+    echo -e "${GREEN}✅ Internet access through $VPN_INTERFACE confirmed.${NC}"
+  else
+    echo -e "${RED}✗ VPN active, but no internet access.${NC}"
+    echo -e "${YELLOW}Trying again in background...${NC}"
+    bash "$RESTART_CMD" &>/dev/null &
+    sleep 3
+  fi
+
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
   trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
 

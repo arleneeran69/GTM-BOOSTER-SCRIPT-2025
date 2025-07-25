@@ -1,11 +1,10 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.4 - Full Menu Edition
-# Author: GeoDevz69 💕 (Now without watermark as requested)
+# DNSTT Keep-Alive & DNS Monitor v2.3.5 - AutoFix Edition
+# Author: GeoDevz69 💕 (Improved for full automation)
 
-VER="2.3.4"
+VER="2.3.5"
 LOOP_DELAY=5
-FAIL_LIMIT=5
 VPN_INTERFACE="tun0"
 DIG_EXEC="$HOME/go/bin/fastdig"
 
@@ -23,9 +22,20 @@ NC='\033[0m'
 
 check_fastdig() {
     if [ ! -x "$DIG_EXEC" ]; then
-        echo -e "${RED}[!] fastdig not found: $DIG_EXEC${NC}"
-        echo -e "${YELLOW}Please run install.sh or recheck Go installation.${NC}"
-        exit 1
+        echo -e "${YELLOW}[!] fastdig not found: $DIG_EXEC"
+        echo -e "[•] Attempting to install fastdig...${NC}"
+        if ! command -v go &>/dev/null; then
+            echo -e "${RED}[!] Go not installed. Installing Go...${NC}"
+            pkg install -y golang
+        fi
+        go install github.com/jedisct1/fastdig@latest
+        export PATH=$PATH:$HOME/go/bin
+        sleep 1
+        if [ ! -x "$DIG_EXEC" ]; then
+            echo -e "${RED}[!] fastdig installation failed. Exiting.${NC}"
+            exit 1
+        fi
+        echo -e "${GREEN}[✔] fastdig installed successfully.${NC}"
     fi
 }
 
@@ -66,7 +76,7 @@ ping_dns_list() {
     echo -e "${PINK}[•] Pinging DNS IPs in $DNS_FILE...${NC}"
     while read -r ip; do
         [ -z "$ip" ] && continue
-        ping_result=$(ping -c1 -W1 "$ip" 2>/dev/null | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1)
+        ping_result=$(ping -c1 -W1 "$ip" 2>/dev/null | grep 'time=' | sed 's/.*time=\(.*\) ms/\1/')
         if [ -n "$ping_result" ]; then
             echo -e "${GREEN}[+] $ip - ${ping_result} ms${NC}"
         else
@@ -81,7 +91,7 @@ ping_known_dns() {
     declare -A targets=( ["dns9.quad9.net"]="9.9.9.9" ["one.one.one.one"]="1.1.1.1" ["google.com"]="8.8.8.8" )
     for name in "${!targets[@]}"; do
         ip=${targets[$name]}
-        result=$(ping -c1 -W1 "$ip" 2>/dev/null | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1)
+        result=$(ping -c1 -W1 "$ip" 2>/dev/null | grep 'time=' | sed 's/.*time=\(.*\) ms/\1/')
         if [ -n "$result" ]; then
             echo -e "${GREEN}[+] $name ($ip) - ${result} ms${NC}"
         else
@@ -132,8 +142,8 @@ start_monitor() {
     done
 }
 
+# ---- Start Execution ----
 check_fastdig
-mkdir -p ~
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
 while true; do

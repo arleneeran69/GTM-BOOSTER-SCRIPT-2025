@@ -33,17 +33,19 @@ readarray -t DNS_LIST < "$DNS_FILE"
 readarray -t NS_LIST < "$NS_FILE"
 readarray -t GATEWAYS < "$GW_FILE"
 
-# Choose dig binary
-case "$DIG_EXEC" in
-  DEFAULT|D) _DIG=$(command -v dig) ;;
-  CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
-  *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
-esac
-
-[ ! -x "$_DIG" ] && {
-  echo -e "${RED}[!] dig not found or not executable: $_DIG${NC}"
-  exit 1
-}
+# Choose dig binary with fallback
+if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
+  if [[ -x "$CUSTOM_DIG" ]]; then
+    _DIG="$CUSTOM_DIG"
+  else
+    echo -e "${YELLOW}[!] fastdig not found or not executable. Falling back to system dig.${NC}"
+    _DIG=$(command -v dig)
+    [[ -z "$_DIG" ]] && echo -e "${RED}[!] No dig binary available. Exiting.${NC}" && exit 1
+  fi
+else
+  _DIG=$(command -v dig)
+  [[ -z "$_DIG" ]] && echo -e "${RED}[!] No dig binary available. Exiting.${NC}" && exit 1
+fi
 
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
@@ -140,7 +142,8 @@ check_servers() {
         echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
       fi
 
-      timeout -k 3 3 "$_DIG" @"$dns_ip" "$domain" &>/dev/null
+      # Force TCP in dig query for better compatibility
+      timeout -k 3 3 "$_DIG" +tcp @"$dns_ip" "$domain" &>/dev/null
       if [[ $? -eq 0 ]]; then
         echo -e "       ${GREEN}✓ DNS Query OK${NC}"
       else

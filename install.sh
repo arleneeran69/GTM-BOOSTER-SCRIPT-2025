@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.2 - Domain Only NS Edition + Globe Lookup
+# DNSTT Keep-Alive & DNS Monitor v2.3.3 - Domain Only NS Edition + Lookup Tools
 # Author: GeoDevz69 💕
-VER="2.3.2"
+VER="2.3.3"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -43,6 +43,7 @@ arch=$(uname -m)
   exit 1
 }
 
+# Dig binary selection
 if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
   if [[ -x "$CUSTOM_DIG" ]]; then
     _DIG="$CUSTOM_DIG"
@@ -144,7 +145,7 @@ check_servers() {
 
 globe_dns_lookup() {
   echo -e "${YELLOW}📡 Scanning best Globe DNS (124.6.181.*)...${NC}"
-  DNS_CANDIDATES=(124.6.181.1 124.6.181.10 124.6.181.15 124.6.181.25 124.6.181.26 124.6.181.30)
+  DNS_CANDIDATES=(124.6.181.25 124.6.181.26 124.6.181.27 124.6.181.31 124.6.181.167 124.6.181.171 124.6.181.248)
   best_dns=""; best_ms=9999
 
   for ip in "${DNS_CANDIDATES[@]}"; do
@@ -168,10 +169,47 @@ globe_dns_lookup() {
   sleep 3
 }
 
+dns_lookup_from_file() {
+  echo -e "${CYAN}🔍 Looking up domains from DNS IPs in your DNS list...${NC}"
+  readarray -t DNS_LIST < "$DNS_FILE"
+  for ip in "${DNS_LIST[@]}"; do
+    echo -ne "  $ip — "
+    domain=$(getent hosts "$ip" 2>/dev/null | awk '{print $2}')
+    if [[ -n "$domain" ]]; then
+      echo -e "${GREEN}$domain${NC}"
+    else
+      echo -e "${RED}No PTR/domain info${NC}"
+    fi
+  done
+  sleep 3
+}
+
+ping_common_destinations() {
+  echo -e "${CYAN}📡 Pinging common DNS destinations...${NC}"
+  declare -A DESTS=(
+    ["dns9.quad9.net"]="9.9.9.9"
+    ["www.google.com"]="8.8.8.8"
+    ["one.one.one.one"]="1.1.1.1"
+  )
+
+  for name in "${!DESTS[@]}"; do
+    ip="${DESTS[$name]}"
+    echo -ne "  $name ($ip) — "
+    out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      color_ping "$ms"
+    else
+      echo -e "${RED}Unreachable${NC}"
+    fi
+  done
+  sleep 3
+}
+
 start_monitor() {
   clear
   echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║     GBooster Tool v$VER            ║"
+  echo -e "║     GeoDevz Script v$VER            ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
@@ -187,18 +225,19 @@ start_monitor() {
   done
 }
 
-# ========== Menu ==========
 main_menu() {
   trap '' SIGINT
   clear
   echo -e "${PINK}╔═══════════════════════════════╗"
-  echo -e "║         GTM Main Menu         ║"
+  echo -e "║         📡 GTM BOOSTER 📡         ║"
   echo -e "╚═══════════════════════════════╝${NC}"
   echo -e "${WHITE}1) Edit DNS List (IPs Only)"
   echo "2) Edit NS Domains (1 per line)"
   echo "3) Edit Gateways (IPs Only)"
   echo "4) Run Monitor Script"
-  echo "5) Auto-Lookup Best Globe DNS"
+  echo "5) Check Available DNS"
+  echo "6) Show Domain from DNS IP List"
+  echo "7) DNS Resolver"
   echo -e "0) Exit Script${NC}"
   echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
@@ -208,6 +247,8 @@ main_menu() {
     3) edit_gateways_only ;;
     4) start_monitor ;;
     5) globe_dns_lookup ;;
+    6) dns_lookup_from_file ;;
+    7) ping_common_destinations ;;
     0) echo -e "${YELLOW}Thanks for using the script 💕${NC}"; exit 0 ;;
     *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
   esac

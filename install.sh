@@ -1,14 +1,15 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.3 - Optimized Edition
+# DNSTT Keep-Alive & DNS Monitor v2.3
 # Author: GeoDevz69 💕
-VER="2.3.3"
+
+VER="2.3"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
 CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
 VPN_INTERFACE="tun0"
-RESTART_CMD="$HOME/dnstt/start-client.sh"
+RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -19,23 +20,35 @@ WHITE='\033[1;37m'
 PINK='\033[1;35m'
 NC='\033[0m'
 
-# Config Files
+# Config files
 DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
 
-# Placeholder Setup
-[[ ! -f "$RESTART_CMD" ]] && {
-  mkdir -p "$HOME/dnstt"
-  echo -e "#!/data/data/com.termux/files/usr/bin/bash\nexit 0" > "$RESTART_CMD"
-  chmod +x "$RESTART_CMD"
-}
+# Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# System Checks
+# Load data
+readarray -t DNS_LIST < "$DNS_FILE"
+readarray -t NS_LIST < "$NS_FILE"
+readarray -t GATEWAYS < "$GW_FILE"
+
+# Dig binary selection
+case "$DIG_EXEC" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
+  *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
+esac
+
+[ ! -x "$_DIG" ] && {
+  echo -e "${RED}[!] dig not found or not executable: $_DIG${NC}"
+  exit 1
+}
+
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
+  echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
   exit 1
 }
 [ ! -d "/data/data/com.termux" ] && {
@@ -43,24 +56,28 @@ arch=$(uname -m)
   exit 1
 }
 
-# Dig Resolver Setup
-if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
-  [[ -x "$CUSTOM_DIG" ]] && _DIG="$CUSTOM_DIG" || {
-    echo -e "${YELLOW}[!] fastdig not found. Falling back to dig.${NC}"
-    _DIG=$(command -v dig)
-    [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
-  }
-else
-  _DIG=$(command -v dig)
-  [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
-fi
+# ===== Editor Functions =====
+edit_dns_only() {
+  echo -e "${YELLOW}Edit DNS IPs (1 per line, example: 124.6.181.25)...${NC}"
+  sleep 1; nano "$DNS_FILE"; exec bash "$0"
+}
 
-# === Functions ===
+edit_ns_only() {
+  if ! grep -q "example.com" "$NS_FILE"; then
+    echo "# Format: domain IP" > "$NS_FILE"
+    echo "# Example: gtm.codered-api.shop 1.2.3.4" >> "$NS_FILE"
+    echo "# One entry per line." >> "$NS_FILE"
+  fi
+  echo -e "${YELLOW}Edit NS Servers (domain and IP)...${NC}"
+  sleep 1; nano "$NS_FILE"; exec bash "$0"
+}
 
-edit_dns_only() { echo -e "${YELLOW}Edit DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; }
-edit_ns_only() { echo -e "${YELLOW}Edit NS Domains only...${NC}"; sleep 1; nano "$NS_FILE"; }
-edit_gateways_only() { echo -e "${YELLOW}Edit Gateway IPs only...${NC}"; sleep 1; nano "$GW_FILE"; }
+edit_gateways_only() {
+  echo -e "${YELLOW}Edit Gateway IPs or Hosts (1 per line, e.g. 8.8.8.8 or www.google.com)...${NC}"
+  sleep 1; nano "$GW_FILE"; exec bash "$0"
+}
 
+# ===== Utility =====
 color_ping() {
   ms=$1
   if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
@@ -71,15 +88,17 @@ color_ping() {
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
-  [ -f "$RESTART_CMD" ] && bash "$RESTART_CMD" &>/dev/null &
-  echo -e "${GREEN}[✓] Restart command sent.${NC}"
+  eval "$RESTART_CMD" &
   sleep 2
 }
 
 check_interface() {
-  ip link show "$VPN_INTERFACE" &>/dev/null &&
-    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}" ||
-    { echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"; restart_vpn; }
+  if ip link show "$VPN_INTERFACE" &>/dev/null; then
+    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}"
+  else
+    echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"
+    restart_vpn
+  fi
 }
 
 check_speed() {
@@ -91,7 +110,6 @@ check_speed() {
 
 check_gateways() {
   echo -e "\n🌐 Gateway Ping:"
-  readarray -t GATEWAYS < "$GW_FILE"
   best_gw=""; best_ping=9999
   for gw in "${GATEWAYS[@]}"; do
     out=$(ping -c1 -W2 "$gw" 2>/dev/null)
@@ -107,97 +125,86 @@ check_gateways() {
 }
 
 check_servers() {
-  echo -e "\n🔍 Checking NS Domains:"
-  readarray -t DNS_LIST < "$DNS_FILE"
-  readarray -t NS_LIST < "$NS_FILE"
+  echo -e "\n🔍 Checking NS Servers:"
   fail_count=0; best_ns=""; best_ping=9999
 
-  for domain in "${NS_LIST[@]}"; do
-    [[ -z "$domain" ]] && continue
-    echo -e "\n[•] $domain"
-    best_this=9999; found=0
-    for dns_ip in "${DNS_LIST[@]}"; do
-      ping_out=$(ping -c1 -W2 "$dns_ip" 2>/dev/null)
-      if [[ $? -eq 0 ]]; then
-        ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-        echo -ne "    ↳ $dns_ip — "; color_ping "$ping_ms"
-        (( ping_ms < best_this )) && best_this=$ping_ms && best_ns="$domain via $dns_ip"
-        found=1
-      else
-        echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
-      fi
-      timeout -k 3 3 "$_DIG" +tcp @"$dns_ip" "$domain" &>/dev/null
-      if [[ $? -eq 0 ]]; then
-        echo -e "       ${GREEN}✓ DNS Query OK${NC}"
-      else
-        echo -e "       ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
-      fi
-    done
-    (( found == 0 )) && echo -e "    ${RED}✗ All DNS Unreachable for $domain${NC}"
-    (( best_this < best_ping )) && best_ping=$best_this
+  for entry in "${NS_LIST[@]}"; do
+    domain=$(echo "$entry" | awk '{print $1}')
+    ip=$(echo "$entry" | awk '{print $2}')
+    [[ -z "$domain" || -z "$ip" ]] && continue
+
+    echo -e "\n[•] $domain @ $ip"
+
+    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
+      (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
+    else
+      echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
+    fi
+
+    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo -e "    ${GREEN}✓ DNS Query OK${NC}"
+    else
+      echo -e "    ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
+    fi
   done
 
   [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
 }
 
-globe_dns_lookup() {
-  echo -e "${YELLOW}📡 Scanning best Globe DNS (124.6.181.*)...${NC}"
-  DNS_CANDIDATES=(124.6.181.25 124.6.181.26 124.6.181.27 124.6.181.31 124.6.181.167 124.6.181.171 124.6.181.248)
-  best_dns=""; best_ms=9999
+# ===== Extra Features =====
+auto_ping_dns_list() {
+  echo -e "\n${CYAN}📡 Auto-Ping Test: DNS IP List (Globe)...${NC}"
+  best_dns=""; best_ping=9999
 
-  for ip in "${DNS_CANDIDATES[@]}"; do
-    out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+  for dns in "${DNS_LIST[@]}"; do
+    [[ -z "$dns" ]] && continue
+    out=$(ping -c1 -W2 "$dns" 2>/dev/null)
     if [[ $? -eq 0 ]]; then
       ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "  $ip — "; color_ping "$ms"
-      (( ms < best_ms )) && best_ms=$ms && best_dns=$ip
+      echo -ne "  $dns — "; color_ping "$ms"
+      (( ms < best_ping )) && best_ping=$ms && best_dns=$dns
     else
-      echo -e "  $ip — ${RED}Unreachable${NC}"
+      echo -e "  $dns — ${RED}Unreachable${NC}"
     fi
   done
-
-  if [[ "$best_dns" ]]; then
-    echo -e "${GREEN}✅ Best Globe DNS: $best_dns ($best_ms ms)${NC}"
-    grep -qxF "$best_dns" "$DNS_FILE" || echo "$best_dns" >> "$DNS_FILE"
-    echo -e "${CYAN}📁 DNS list updated with: $best_dns${NC}"
-  else
-    echo -e "${RED}✗ No Globe DNS is reachable right now.${NC}"
-  fi
-  sleep 3
+  [[ "$best_dns" ]] && echo -e "\n✅ ${GREEN}Best DNS: $best_dns — $(color_ping $best_ping)"
+  echo -e "\n${YELLOW}Done. Returning to menu...${NC}"; sleep 2
+  exec bash "$0"
 }
 
-ping_common_destinations() {
-  echo -e "${CYAN}📡 Pinging common DNS destinations...${NC}"
-  declare -A DESTS=(
-    ["dns9.quad9.net"]="9.9.9.9"
-    ["www.google.com"]="8.8.8.8"
-    ["one.one.one.one"]="1.1.1.1"
-  )
+reset_list_menu() {
+  clear
+  echo -e "${YELLOW}Which list do you want to reset?${NC}"
+  echo -e "${WHITE}1) Clear DNS IP List"
+  echo "2) Clear NS Server List"
+  echo "3) Clear Gateway List"
+  echo -e "4) Clear ALL Lists"
+  echo -e "0) Back to Main Menu${NC}"
+  echo -ne "${PINK}Choose Option: ${NC}"; read reset_choice
 
-  for name in "${!DESTS[@]}"; do
-    ip="${DESTS[$name]}"
-    echo -ne "  $name ($ip) — "
-    out=$(ping -c1 -W2 "$ip" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      color_ping "$ms"
-    else
-      echo -e "${RED}Unreachable${NC}"
-    fi
-  done
-  sleep 3
+  case "$reset_choice" in
+    1) > "$DNS_FILE"; echo -e "${GREEN}DNS list cleared.${NC}"; sleep 1 ;;
+    2) > "$NS_FILE"; echo -e "${GREEN}NS list cleared.${NC}"; sleep 1 ;;
+    3) > "$GW_FILE"; echo -e "${GREEN}Gateway list cleared.${NC}"; sleep 1 ;;
+    4) > "$DNS_FILE"; > "$NS_FILE"; > "$GW_FILE"; echo -e "${GREEN}All lists cleared.${NC}"; sleep 1 ;;
+    0) exec bash "$0" ;;
+    *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
+  esac
+  exec bash "$0"
 }
 
 start_monitor() {
   clear
-  echo -e "${PINK}╔══════════════════════════════════════╗"
-  echo -e "         💗 GeoDevz69 Monitor v$VER         "
-  echo -e "╚══════════════════════════════════════╝${NC}"
+  echo -e "${PINK}╔════════════════════════════════════╗"
+  echo -e "     GTM | BOOSTER v$VER"
+  echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
-  echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
-  trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
-
+  echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
   while true; do
     check_interface
     check_speed
@@ -208,32 +215,27 @@ start_monitor() {
   done
 }
 
-main_menu() {
-  trap '' SIGINT
-  clear
-  echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "         📡 GTM BOOSTER 📡         "
-  echo -e "╚═════════════════════════════════╝${NC}"
-  echo -e "${WHITE}1) Edit DNS List (IPs Only)"
-  echo "2) Edit NS Domains (1 per line)"
-  echo "3) Edit Gateways (IPs Only)"
-  echo "4) Run Monitor Script"
-  echo "5) Check Available DNS"
-  echo "6) DNS Resolver (Ping Common IPs)"
-  echo -e "0) Exit Script${NC}"
-  echo -ne "${PINK}Choose Option: ${NC}"; read choice
+# ===== Main Menu =====
+clear
+echo -e "${PINK}╔═══════════════════════════════╗"
+echo -e "       GTM SCRIPT MENU          "
+echo -e "╚═══════════════════════════════╝${NC}"
+echo -e "${WHITE}1) Edit DNS IP List"
+echo "2) Edit NS Servers (domain + IP)"
+echo "3) Edit Gateway Pings (IPs or Domains)"
+echo "4) Run Monitoring Script"
+echo "5) Auto-Ping DNS List"
+echo "6) Reset / Clear Lists"
+echo -e "0) Exit Script${NC}"
+echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
-  case "$choice" in
-    1) edit_dns_only ;;
-    2) edit_ns_only ;;
-    3) edit_gateways_only ;;
-    4) start_monitor ;;
-    5) globe_dns_lookup ;;
-    6) ping_common_destinations ;;
-    0) echo -e "${YELLOW}Thanks for using the script 💕${NC}"; exit 0 ;;
-    *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
-  esac
-  main_menu
-}
-
-main_menu
+case "$choice" in
+  1) edit_dns_only ;;
+  2) edit_ns_only ;;
+  3) edit_gateways_only ;;
+  4) start_monitor ;;
+  5) auto_ping_dns_list ;;
+  6) reset_list_menu ;;
+  0) echo -e "${YELLOW}Thanks For Using this Script 💕${NC}"; exit 0 ;;
+  *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
+esac

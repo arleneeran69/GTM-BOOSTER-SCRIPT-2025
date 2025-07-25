@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.3 - Domain Only NS Edition + Lookup Tools
-# Author: GeoDevz69 💕
-VER="2.3.3"
+# DNSTT Keep-Alive & DNS Monitor v2.3.4 - Data-Validated NS Edition
+# Author: GeoDevz69 💕 (Optimized with Web Access Checks)
+VER="2.3.4"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -24,7 +24,7 @@ DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
 
-# Create placeholders if missing
+# Placeholders
 [[ ! -f "$RESTART_CMD" ]] && {
   mkdir -p "$HOME/dnstt"
   echo -e "#!/data/data/com.termux/files/usr/bin/bash\nexit 0" > "$RESTART_CMD"
@@ -32,32 +32,23 @@ GW_FILE="$HOME/.gateway_list.txt"
 }
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# System checks
+# System check
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
-  echo -e "${RED}Unsupported architecture: $arch${NC}"
-  exit 1
-}
+  echo -e "${RED}Unsupported architecture: $arch${NC}"; exit 1; }
 [ ! -d "/data/data/com.termux" ] && {
-  echo -e "${RED}This script runs only in Termux!${NC}"
-  exit 1
-}
+  echo -e "${RED}This script runs only in Termux!${NC}"; exit 1; }
 
-# Dig binary selection
+# Choose dig
 if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
-  if [[ -x "$CUSTOM_DIG" ]]; then
-    _DIG="$CUSTOM_DIG"
-  else
-    echo -e "${YELLOW}[!] fastdig not found. Falling back to dig.${NC}"
+  [[ -x "$CUSTOM_DIG" ]] && _DIG="$CUSTOM_DIG" || {
+    echo -e "${YELLOW}[!] fastdig not found. Using dig.${NC}"
     _DIG=$(command -v dig)
-    [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
-  fi
-else
-  _DIG=$(command -v dig)
-  [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
-fi
+  }
+else _DIG=$(command -v dig); fi
+[[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
 
-# ===== Functions =====
+# === Functions ===
 
 edit_dns_only() { echo -e "${YELLOW}Edit DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; }
 edit_ns_only() { echo -e "${YELLOW}Edit NS Domains only...${NC}"; sleep 1; nano "$NS_FILE"; }
@@ -73,7 +64,7 @@ color_ping() {
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
-  [ -f "$RESTART_CMD" ] && bash "$RESTART_CMD" &>/dev/null &
+  bash "$RESTART_CMD" &>/dev/null &
   echo -e "${GREEN}[✓] Restart command sent.${NC}"
   sleep 2
 }
@@ -92,19 +83,28 @@ check_speed() {
 }
 
 check_gateways() {
-  echo -e "\n🌐 Gateway Ping:"
+  echo -e "\n🌐 Gateway Ping + Data Access:"
   readarray -t GATEWAYS < "$GW_FILE"
   best_gw=""; best_ping=9999
+
   for gw in "${GATEWAYS[@]}"; do
     out=$(ping -c1 -W2 "$gw" 2>/dev/null)
     if [[ $? -eq 0 ]]; then
       ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
       echo -ne "  $gw — "; color_ping "$ms"
-      (( ms < best_ping )) && best_ping=$ms && best_gw=$gw
+
+      test=$(curl -m 4 -s --connect-timeout 2 --head http://connectivitycheck.gstatic.com/generate_204)
+      if [[ "$test" == *"204 No Content"* ]]; then
+        echo -e "       ${GREEN}✓ Data OK${NC}"
+        (( ms < best_ping )) && best_ping=$ms && best_gw=$gw
+      else
+        echo -e "       ${RED}✗ No Internet Access${NC}"
+      fi
     else
       echo -e "  $gw — ${RED}Unreachable${NC}"
     fi
   done
+
   [[ "$best_gw" ]] && echo -e "\n✅ Best Gateway: $best_gw — $(color_ping $best_ping)"
 }
 
@@ -118,19 +118,27 @@ check_servers() {
     [[ -z "$domain" ]] && continue
     echo -e "\n[•] $domain"
     best_this=9999; found=0
+
     for dns_ip in "${DNS_LIST[@]}"; do
       ping_out=$(ping -c1 -W2 "$dns_ip" 2>/dev/null)
       if [[ $? -eq 0 ]]; then
         ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
         echo -ne "    ↳ $dns_ip — "; color_ping "$ping_ms"
-        (( ping_ms < best_this )) && best_this=$ping_ms && best_ns="$domain via $dns_ip"
         found=1
       else
         echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
       fi
+
       timeout -k 3 3 "$_DIG" +tcp @"$dns_ip" "$domain" &>/dev/null
       if [[ $? -eq 0 ]]; then
         echo -e "       ${GREEN}✓ DNS Query OK${NC}"
+        real_test=$(curl -m 4 -s --connect-timeout 2 --resolve google.com:80:$dns_ip http://google.com -o /dev/null -w "%{http_code}")
+        if [[ "$real_test" == "200" ]]; then
+          echo -e "       ${GREEN}✓ Web Access OK${NC}"
+          (( ping_ms < best_this )) && best_this=$ping_ms && best_ns="$domain via $dns_ip"
+        else
+          echo -e "       ${RED}✗ No Web Access${NC}"; ((fail_count++))
+        fi
       else
         echo -e "       ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
       fi
@@ -194,7 +202,7 @@ ping_common_destinations() {
 start_monitor() {
   clear
   echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "     GeoDevz Script v$VER      "
+  echo -e "     GeoDevz Script v$VER         "
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
@@ -239,4 +247,3 @@ main_menu() {
 }
 
 main_menu
-

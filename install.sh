@@ -28,29 +28,10 @@ GW_FILE="$HOME/.gateway_list.txt"
 # Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# Load data
-readarray -t DNS_LIST < "$DNS_FILE"
-readarray -t NS_LIST < "$NS_FILE"
-readarray -t GATEWAYS < "$GW_FILE"
-
-# Choose dig binary with fallback
-if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
-  if [[ -x "$CUSTOM_DIG" ]]; then
-    _DIG="$CUSTOM_DIG"
-  else
-    echo -e "${YELLOW}[!] fastdig not found or not executable. Falling back to system dig.${NC}"
-    _DIG=$(command -v dig)
-    [[ -z "$_DIG" ]] && echo -e "${RED}[!] No dig binary available. Exiting.${NC}" && exit 1
-  fi
-else
-  _DIG=$(command -v dig)
-  [[ -z "$_DIG" ]] && echo -e "${RED}[!] No dig binary available. Exiting.${NC}" && exit 1
-fi
-
+# Load architecture and dig binary
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
-  echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
   exit 1
 }
 [ ! -d "/data/data/com.termux" ] && {
@@ -58,30 +39,35 @@ arch=$(uname -m)
   exit 1
 }
 
-# ===== Editor Functions =====
+if [[ "$DIG_EXEC" == "CUSTOM" || "$DIG_EXEC" == "C" ]]; then
+  if [[ -x "$CUSTOM_DIG" ]]; then
+    _DIG="$CUSTOM_DIG"
+  else
+    echo -e "${YELLOW}[!] fastdig not found. Falling back to dig.${NC}"
+    _DIG=$(command -v dig)
+    [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
+  fi
+else
+  _DIG=$(command -v dig)
+  [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
+fi
+
+# ========== Functions ==========
 edit_dns_only() {
   echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
-  sleep 1
-  nano "$DNS_FILE"
-  exec bash "$0"
+  sleep 1; nano "$DNS_FILE"
 }
 
-# ✅ FIXED FUNCTION — No longer clears your input
 edit_ns_only() {
   echo -e "${YELLOW}Edit NS Domains only (1 per line)...${NC}"
-  sleep 1
-  nano "$NS_FILE"
-  exec bash "$0"
+  sleep 1; nano "$NS_FILE"
 }
 
 edit_gateways_only() {
   echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
-  sleep 1
-  nano "$GW_FILE"
-  exec bash "$0"
+  sleep 1; nano "$GW_FILE"
 }
 
-# ===== Utility =====
 color_ping() {
   ms=$1
   if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
@@ -114,6 +100,7 @@ check_speed() {
 
 check_gateways() {
   echo -e "\n🌐 Gateway Ping:"
+  readarray -t GATEWAYS < "$GW_FILE"
   best_gw=""; best_ping=9999
   for gw in "${GATEWAYS[@]}"; do
     out=$(ping -c1 -W2 "$gw" 2>/dev/null)
@@ -130,6 +117,8 @@ check_gateways() {
 
 check_servers() {
   echo -e "\n🔍 Checking NS Domains:"
+  readarray -t DNS_LIST < "$DNS_FILE"
+  readarray -t NS_LIST < "$NS_FILE"
   fail_count=0; best_ns=""; best_ping=9999
 
   for domain in "${NS_LIST[@]}"; do
@@ -170,7 +159,11 @@ start_monitor() {
   echo -e "║     GBooster Tool v$VER            ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
-  echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
+  echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
+
+  # Trap CTRL+C and return to main menu
+  trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
+
   while true; do
     check_interface
     check_speed
@@ -181,23 +174,30 @@ start_monitor() {
   done
 }
 
-# ===== Main Menu =====
-clear
-echo -e "${PINK}╔═══════════════════════════════╗"
-echo -e "║         GTM Main Menu         ║"
-echo -e "╚═══════════════════════════════╝${NC}"
-echo -e "${WHITE}1) Edit DNS List (IPs Only)"
-echo "2) Edit NS Domains (1 per line)"
-echo "3) Edit Gateways (IPs Only)"
-echo "4) Run Script"
-echo -e "0) Exit Script ${NC}"
-echo -ne "${PINK}Choose Option: ${NC}"; read choice
+# ========== Menu ==========
+main_menu() {
+  trap '' SIGINT  # Disable trap when in menu
+  clear
+  echo -e "${PINK}╔═══════════════════════════════╗"
+  echo -e "║         GTM Main Menu         ║"
+  echo -e "╚═══════════════════════════════╝${NC}"
+  echo -e "${WHITE}1) Edit DNS List (IPs Only)"
+  echo "2) Edit NS Domains (1 per line)"
+  echo "3) Edit Gateways (IPs Only)"
+  echo "4) Run Monitor Script"
+  echo -e "0) Exit Script${NC}"
+  echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
-case "$choice" in
-  1) edit_dns_only ;;
-  2) edit_ns_only ;;
-  3) edit_gateways_only ;;
-  4) start_monitor ;;
-  0) echo -e "${YELLOW}Thanks For Using this Script 💕.${NC}"; exit 0 ;;
-  *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
-esac
+  case "$choice" in
+    1) edit_dns_only ;;
+    2) edit_ns_only ;;
+    3) edit_gateways_only ;;
+    4) start_monitor ;;
+    0) echo -e "${YELLOW}Thanks for using the script 💕${NC}"; exit 0 ;;
+    *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
+  esac
+  main_menu
+}
+
+# Start script
+main_menu

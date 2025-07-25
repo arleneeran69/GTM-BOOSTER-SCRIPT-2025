@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Termux Script v4.2.3 - Full Pink UI | DNS, NS, Gateway Editor with Monitor
+# Termux Script v4.3.0 - Pink UI | Globe FastDNS Booster | DNSTT Monitor
 # Author: GeoDevz69 💕
 
 # Colors
@@ -22,12 +22,13 @@ touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 main_menu() {
     clear
     echo -e "${PINK}┌───────────────────────────────────────────────┐"
-    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.2.3        │"
+    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.0        │"
     echo -e "${PINK}├───────────────────────────────────────────────┤"
     echo -e "${PINK}│ 1. Edit DNS Servers (IP only)                 │"
     echo -e "${PINK}│ 2. Edit NS (domain IP)                        │"
     echo -e "${PINK}│ 3. Edit Gateway IPs                           │"
     echo -e "${PINK}│ 4. Start DNSTT Monitor                        │"
+    echo -e "${PINK}│ 5. Apply Globe FastDNS Booster                │"
     echo -e "${PINK}│ 0. Exit                                       │"
     echo -e "${PINK}└───────────────────────────────────────────────┘${NC}"
     echo -ne "${PINK}Choose: ${NC}"
@@ -38,6 +39,7 @@ main_menu() {
         2) edit_ns_file ;;
         3) nano "$GW_FILE" ;;
         4) start_monitor ;;
+        5) apply_boost_dns ;;
         0) exit 0 ;;
         *) echo -e "${PINK}[!] Invalid option${NC}"; sleep 1 ;;
     esac
@@ -46,9 +48,19 @@ main_menu() {
 
 edit_ns_file() {
     if ! grep -qE "^[^#]+\.[a-zA-Z]+[[:space:]]+[0-9]" "$NS_FILE"; then
-        echo -e "# Format: domain IP\n# Ex: ns.example.com 1.1.1.1" > "$NS_FILE"
+        echo -e "# Format: domain IP\n# Example: ns.example.com 1.1.1.1" > "$NS_FILE"
     fi
     nano "$NS_FILE"
+}
+
+apply_boost_dns() {
+    echo -e "${PINK}Applying Globe FastDNS preset...${NC}"
+    echo -e "124.6.181.25\n124.6.181.26\n124.6.181.27\n124.6.181.31\n124.6.181.248" > "$DNS_FILE"
+    echo -e "gtm.codered-api.shop 124.6.181.25\n" > "$NS_FILE"
+    echo -e "8.8.8.8\n1.1.1.1\n124.6.181.1" > "$GW_FILE"
+    sleep 1
+    echo -e "${GREEN}[✔] Globe FastDNS Applied!${NC}"
+    sleep 1
 }
 
 start_monitor() {
@@ -56,13 +68,13 @@ start_monitor() {
     echo -e "${PINK}Starting DNSTT Monitor...${NC}"
     sleep 1
 
+    # Load entries, skip comments and blanks
     DNS_LIST=()
-    while read -r line; do [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue; DNS_LIST+=("$line"); done < "$DNS_FILE"
-
     NS_LIST=()
-    while read -r line; do [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue; NS_LIST+=("$line"); done < "$NS_FILE"
-
     GW_LIST=()
+
+    while read -r line; do [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue; DNS_LIST+=("$line"); done < "$DNS_FILE"
+    while read -r line; do [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue; NS_LIST+=("$line"); done < "$NS_FILE"
     while read -r line; do [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue; GW_LIST+=("$line"); done < "$GW_FILE"
 
     echo -e "${PINK}──────────────────────────────${NC}"
@@ -74,16 +86,11 @@ start_monitor() {
     while true; do
         echo -e "\n${PINK}DNS Response Test:${NC}"
         for dns in "${DNS_LIST[@]}"; do
-            result=$(getent hosts example.com | grep "$dns")
-            if [ $? -eq 0 ]; then
-                echo -e "${PINK}• $dns → ${GREEN}resolves${NC}"
+            dig_out=$(timeout 2s dig @"$dns" example.com +short)
+            if [[ -n "$dig_out" ]]; then
+                echo -e "${PINK}• $dns → ${GREEN}OK${NC}"
             else
-                dig_out=$(timeout 2s dig @${dns} example.com +short)
-                if [ -n "$dig_out" ]; then
-                    echo -e "${PINK}• $dns → ${GREEN}OK${NC}"
-                else
-                    echo -e "${PINK}• $dns → ${RED}FAIL${NC}"
-                fi
+                echo -e "${PINK}• $dns → ${RED}FAIL${NC}"
             fi
         done
 
@@ -91,8 +98,12 @@ start_monitor() {
         for entry in "${NS_LIST[@]}"; do
             ns_domain=$(echo "$entry" | awk '{print $1}')
             ns_ip=$(echo "$entry" | awk '{print $2}')
-            dig_out=$(timeout 2s dig @$ns_ip "$ns_domain" +short)
-            if [ -n "$dig_out" ]; then
+            if [[ -z "$ns_domain" || -z "$ns_ip" ]]; then
+                echo -e "${PINK}• Invalid NS entry → ${RED}FAIL${NC}"
+                continue
+            fi
+            dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +short)
+            if [[ -n "$dig_out" ]]; then
                 echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC}"
             else
                 echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC}"

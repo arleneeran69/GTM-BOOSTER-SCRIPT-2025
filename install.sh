@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Termux Script v4.3.2 - NS Ping Color Enhanced + Pink UI
+# Termux Script v4.3.2 - NS Ping Color Enhanced + Pink UI (Fixed)
 # Author: GeoDevz69 💕
 
 # Colors
@@ -47,9 +47,9 @@ main_menu() {
     done
 }
 
-# Edit NS entries with header
+# Edit NS entries with header (fixed)
 edit_ns_file() {
-    if ! grep -qE "^[^#]+\.[a-zA-Z]+[[:space:]]+[0-9]" "$NS_FILE"; then
+    if [[ ! -s "$NS_FILE" ]]; then
         echo -e "# Format: domain IP\n# Example: ns.example.com 1.1.1.1" > "$NS_FILE"
     fi
     nano "$NS_FILE"
@@ -59,7 +59,7 @@ edit_ns_file() {
 apply_boost_dns() {
     echo -e "${PINK}Applying Globe FastDNS preset...${NC}"
     echo -e "124.6.181.25\n124.6.181.26\n124.6.181.27\n124.6.181.31\n124.6.181.248" > "$DNS_FILE"
-    echo -e "gtm.codered-api.shop 124.6.181.25\n" > "$NS_FILE"
+    echo -e "gtm.codered-api.shop 124.6.181.25" > "$NS_FILE"
     echo -e "8.8.8.8\n1.1.1.1\n124.6.181.1" > "$GW_FILE"
     sleep 1
     echo -e "${GREEN}[✔] Globe FastDNS Applied!${NC}"
@@ -119,10 +119,12 @@ start_monitor() {
                 ms_display="${RED}${ms} ms${NC}"
             fi
 
-            # Run dig and evaluate output
+            # Run dig and display correct status
             dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +noall +answer)
-            if [[ -z "$dig_out" ]]; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${ms_display}"
+            if [[ -z "$ms" ]]; then
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}No Ping${NC}"
+            elif [[ -z "$dig_out" ]]; then
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${YELLOW}Ping OK but DNS FAIL${NC} ${ms_display}"
             else
                 echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${ms_display}"
             fi

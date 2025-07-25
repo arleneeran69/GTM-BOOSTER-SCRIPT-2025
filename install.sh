@@ -194,7 +194,7 @@ ping_common_destinations() {
 start_monitor() {
   clear
   echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "║     GeoDevz Script v$VER      ║"
+  echo -e "     GeoDevz Script v$VER      "
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
@@ -214,7 +214,7 @@ main_menu() {
   trap '' SIGINT
   clear
   echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "║         📡 GTM BOOSTER 📡         ║"
+  echo -e "         📡 GTM BOOSTER 📡         "
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}1) Edit DNS List (IPs Only)"
   echo "2) Edit NS Domains (1 per line)"
@@ -239,3 +239,4 @@ main_menu() {
 }
 
 main_menu
+

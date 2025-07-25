@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Termux Script v4.3.1 - Pink UI | Fixed NS Check & Latency
+# Termux Script v4.3.2 - NS Ping Color Enhanced + Pink UI
 # Author: GeoDevz69 💕
 
 # Colors
@@ -22,7 +22,7 @@ touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 main_menu() {
     clear
     echo -e "${PINK}┌───────────────────────────────────────────────┐"
-    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.1        │"
+    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.2        │"
     echo -e "${PINK}├───────────────────────────────────────────────┤"
     echo -e "${PINK}│ 1. Edit DNS Servers (IP only)                 │"
     echo -e "${PINK}│ 2. Edit NS (domain IP)                        │"
@@ -104,19 +104,29 @@ start_monitor() {
 
             # Get latency
             ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+
             if [[ -z "$ms" ]]; then
                 echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}No ping${NC}"
                 continue
             fi
 
+            # Determine ping color
+            if [[ "$ms" -lt 80 ]]; then
+                ms_color="$GREEN"
+            elif [[ "$ms" -lt 200 ]]; then
+                ms_color="$YELLOW"
+            else
+                ms_color="$RED"
+            fi
+
             # Check dig response
             dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +noall +answer)
             if [[ -z "$dig_out" ]]; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${RED}${ms} ms${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${ms_color}${ms} ms${NC}"
             elif echo "$dig_out" | grep -q "$ns_domain"; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${GREEN}${ms} ms${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${ms_color}${ms} ms${NC}"
             else
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${YELLOW}No answer${NC} ${YELLOW}${ms} ms${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${YELLOW}No answer${NC} ${ms_color}${ms} ms${NC}"
             fi
         done
 
@@ -125,9 +135,9 @@ start_monitor() {
             ms=$(ping -c 1 -W 1 "$gw" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
             if [[ -z "$ms" ]]; then
                 echo -e "${PINK}• $gw → ${RED}timeout${NC}"
-            elif [ "$ms" -lt 100 ]; then
+            elif [ "$ms" -lt 80 ]; then
                 echo -e "${PINK}• $gw → ${GREEN}${ms} ms${NC}"
-            elif [ "$ms" -lt 300 ]; then
+            elif [ "$ms" -lt 200 ]; then
                 echo -e "${PINK}• $gw → ${YELLOW}${ms} ms${NC}"
             else
                 echo -e "${PINK}• $gw → ${RED}${ms} ms${NC}"

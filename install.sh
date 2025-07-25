@@ -18,34 +18,36 @@ GW_FILE="$HOME/.gw_list.txt"
 # Create files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# Menu
+# Main Menu
 main_menu() {
-    clear
-    echo -e "${PINK}┌───────────────────────────────────────────────┐"
-    echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.2        │"
-    echo -e "${PINK}├───────────────────────────────────────────────┤"
-    echo -e "${PINK}│ 1. Edit DNS Servers (IP only)                 │"
-    echo -e "${PINK}│ 2. Edit NS (domain IP)                        │"
-    echo -e "${PINK}│ 3. Edit Gateway IPs                           │"
-    echo -e "${PINK}│ 4. Start DNSTT Monitor                        │"
-    echo -e "${PINK}│ 5. Apply Globe FastDNS Booster                │"
-    echo -e "${PINK}│ 0. Exit                                       │"
-    echo -e "${PINK}└───────────────────────────────────────────────┘${NC}"
-    echo -ne "${PINK}Choose: ${NC}"
-    read -r choice
+    while true; do
+        clear
+        echo -e "${PINK}┌───────────────────────────────────────────────┐"
+        echo -e "${PINK}│         GeoDevz69 DNSTT Monitor v4.3.2        │"
+        echo -e "${PINK}├───────────────────────────────────────────────┤"
+        echo -e "${PINK}│ 1. Edit DNS Servers (IP only)                 │"
+        echo -e "${PINK}│ 2. Edit NS (domain IP)                        │"
+        echo -e "${PINK}│ 3. Edit Gateway IPs                           │"
+        echo -e "${PINK}│ 4. Start DNSTT Monitor                        │"
+        echo -e "${PINK}│ 5. Apply Globe FastDNS Booster                │"
+        echo -e "${PINK}│ 0. Exit                                       │"
+        echo -e "${PINK}└───────────────────────────────────────────────┘${NC}"
+        echo -ne "${PINK}Choose: ${NC}"
+        read -r choice
 
-    case "$choice" in
-        1) nano "$DNS_FILE" ;;
-        2) edit_ns_file ;;
-        3) nano "$GW_FILE" ;;
-        4) start_monitor ;;
-        5) apply_boost_dns ;;
-        0) exit 0 ;;
-        *) echo -e "${PINK}[!] Invalid option${NC}"; sleep 1 ;;
-    esac
-    main_menu
+        case "$choice" in
+            1) nano "$DNS_FILE" ;;
+            2) edit_ns_file ;;
+            3) nano "$GW_FILE" ;;
+            4) start_monitor ;;
+            5) apply_boost_dns ;;
+            0) exit 0 ;;
+            *) echo -e "${PINK}[!] Invalid option${NC}"; sleep 1 ;;
+        esac
+    done
 }
 
+# Edit NS entries with header
 edit_ns_file() {
     if ! grep -qE "^[^#]+\.[a-zA-Z]+[[:space:]]+[0-9]" "$NS_FILE"; then
         echo -e "# Format: domain IP\n# Example: ns.example.com 1.1.1.1" > "$NS_FILE"
@@ -53,6 +55,7 @@ edit_ns_file() {
     nano "$NS_FILE"
 }
 
+# Apply Globe FastDNS Booster
 apply_boost_dns() {
     echo -e "${PINK}Applying Globe FastDNS preset...${NC}"
     echo -e "124.6.181.25\n124.6.181.26\n124.6.181.27\n124.6.181.31\n124.6.181.248" > "$DNS_FILE"
@@ -63,6 +66,7 @@ apply_boost_dns() {
     sleep 1
 }
 
+# DNSTT Monitor
 start_monitor() {
     clear
     echo -e "${PINK}Starting DNSTT Monitor...${NC}"
@@ -102,7 +106,6 @@ start_monitor() {
                 continue
             fi
 
-            # Get latency
             ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
 
             if [[ -z "$ms" ]]; then
@@ -110,7 +113,7 @@ start_monitor() {
                 continue
             fi
 
-            # Determine ping color
+            # Latency color
             if [[ "$ms" -lt 80 ]]; then
                 ms_color="$GREEN"
             elif [[ "$ms" -lt 200 ]]; then
@@ -119,7 +122,6 @@ start_monitor() {
                 ms_color="$RED"
             fi
 
-            # Check dig response
             dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +noall +answer)
             if [[ -z "$dig_out" ]]; then
                 echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${ms_color}${ms} ms${NC}"
@@ -149,4 +151,5 @@ start_monitor() {
     done
 }
 
+# Launch menu
 main_menu

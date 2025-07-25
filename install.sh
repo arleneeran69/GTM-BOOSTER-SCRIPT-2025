@@ -161,27 +161,11 @@ globe_dns_lookup() {
 
   if [[ "$best_dns" ]]; then
     echo -e "${GREEN}✅ Best Globe DNS: $best_dns ($best_ms ms)${NC}"
-    # Append without overwriting
     grep -qxF "$best_dns" "$DNS_FILE" || echo "$best_dns" >> "$DNS_FILE"
     echo -e "${CYAN}📁 DNS list updated with: $best_dns${NC}"
   else
     echo -e "${RED}✗ No Globe DNS is reachable right now.${NC}"
   fi
-  sleep 3
-}
-
-dns_lookup_from_file() {
-  echo -e "${CYAN}🔍 Looking up domains from DNS IPs in your DNS list...${NC}"
-  readarray -t DNS_LIST < "$DNS_FILE"
-  for ip in "${DNS_LIST[@]}"; do
-    echo -ne "  $ip — "
-    domain=$(getent hosts "$ip" 2>/dev/null | awk '{print $2}')
-    if [[ -n "$domain" ]]; then
-      echo -e "${GREEN}$domain${NC}"
-    else
-      echo -e "${RED}No PTR/domain info${NC}"
-    fi
-  done
   sleep 3
 }
 
@@ -209,9 +193,9 @@ ping_common_destinations() {
 
 start_monitor() {
   clear
-  echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║     GeoDevz Script v$VER            ║"
-  echo -e "╚════════════════════════════════════╝${NC}"
+  echo -e "${PINK}╔═════════════════════════════════╗"
+  echo -e "║     GeoDevz Script v$VER      ║"
+  echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
   trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
@@ -230,15 +214,14 @@ main_menu() {
   trap '' SIGINT
   clear
   echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "║       📡 GTM BOOSTER 📡      ║"
+  echo -e "║         📡 GTM BOOSTER 📡         ║"
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}1) Edit DNS List (IPs Only)"
   echo "2) Edit NS Domains (1 per line)"
   echo "3) Edit Gateways (IPs Only)"
   echo "4) Run Monitor Script"
   echo "5) Check Available DNS"
-  echo "6) Show Domain from DNS IP List"
-  echo "7) DNS Resolver"
+  echo "6) DNS Resolver"
   echo -e "0) Exit Script${NC}"
   echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
@@ -248,8 +231,7 @@ main_menu() {
     3) edit_gateways_only ;;
     4) start_monitor ;;
     5) globe_dns_lookup ;;
-    6) dns_lookup_from_file ;;
-    7) ping_common_destinations ;;
+    6) ping_common_destinations ;;
     0) echo -e "${YELLOW}Thanks for using the script 💕${NC}"; exit 0 ;;
     *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
   esac

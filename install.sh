@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.1 - Domain Only NS Edition
+# DNSTT Keep-Alive & DNS Monitor v2.3.2 - Domain Only NS Edition + Globe Lookup
 # Author: GeoDevz69 💕
-VER="2.3.1"
+VER="2.3.2"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -24,17 +24,15 @@ DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
 
-# Create placeholder DNSTT script if missing
+# Create placeholder if missing
 [[ ! -f "$RESTART_CMD" ]] && {
   mkdir -p "$HOME/dnstt"
-  echo -e "#!/data/data/com.termux/files/usr/bin/bash\n# Placeholder DNSTT client starter\nexit 0" > "$RESTART_CMD"
+  echo -e "#!/data/data/com.termux/files/usr/bin/bash\nexit 0" > "$RESTART_CMD"
   chmod +x "$RESTART_CMD"
 }
 
-# Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# Load architecture and dig binary
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
@@ -60,20 +58,9 @@ fi
 
 # ========== Functions ==========
 
-edit_dns_only() {
-  echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
-  sleep 1; nano "$DNS_FILE"
-}
-
-edit_ns_only() {
-  echo -e "${YELLOW}Edit NS Domains only (1 per line)...${NC}"
-  sleep 1; nano "$NS_FILE"
-}
-
-edit_gateways_only() {
-  echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
-  sleep 1; nano "$GW_FILE"
-}
+edit_dns_only() { echo -e "${YELLOW}Edit DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; }
+edit_ns_only() { echo -e "${YELLOW}Edit NS Domains only...${NC}"; sleep 1; nano "$NS_FILE"; }
+edit_gateways_only() { echo -e "${YELLOW}Edit Gateway IPs only...${NC}"; sleep 1; nano "$GW_FILE"; }
 
 color_ping() {
   ms=$1
@@ -85,25 +72,15 @@ color_ping() {
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
-
-  if [ -f "$RESTART_CMD" ]; then
-    bash "$RESTART_CMD" &>/dev/null &
-    echo -e "${GREEN}[✓] Restart command sent.${NC}"
-  else
-    echo -e "${RED}[✗] DNSTT start script not found: $RESTART_CMD${NC}"
-    echo -e "${YELLOW}Please check or create the file to auto-restart DNSTT.${NC}"
-  fi
-
+  [ -f "$RESTART_CMD" ] && bash "$RESTART_CMD" &>/dev/null &
+  echo -e "${GREEN}[✓] Restart command sent.${NC}"
   sleep 2
 }
 
 check_interface() {
-  if ip link show "$VPN_INTERFACE" &>/dev/null; then
-    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}"
-  else
-    echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"
-    restart_vpn
-  fi
+  ip link show "$VPN_INTERFACE" &>/dev/null &&
+    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}" ||
+    { echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"; restart_vpn; }
 }
 
 check_speed() {
@@ -139,7 +116,6 @@ check_servers() {
   for domain in "${NS_LIST[@]}"; do
     [[ -z "$domain" ]] && continue
     echo -e "\n[•] $domain"
-
     best_this=9999; found=0
     for dns_ip in "${DNS_LIST[@]}"; do
       ping_out=$(ping -c1 -W2 "$dns_ip" 2>/dev/null)
@@ -151,7 +127,6 @@ check_servers() {
       else
         echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
       fi
-
       timeout -k 3 3 "$_DIG" +tcp @"$dns_ip" "$domain" &>/dev/null
       if [[ $? -eq 0 ]]; then
         echo -e "       ${GREEN}✓ DNS Query OK${NC}"
@@ -159,13 +134,38 @@ check_servers() {
         echo -e "       ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
       fi
     done
-
     (( found == 0 )) && echo -e "    ${RED}✗ All DNS Unreachable for $domain${NC}"
     (( best_this < best_ping )) && best_ping=$best_this
   done
 
   [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
+}
+
+globe_dns_lookup() {
+  echo -e "${YELLOW}📡 Scanning best Globe DNS (124.6.181.*)...${NC}"
+  DNS_CANDIDATES=(124.6.181.1 124.6.181.10 124.6.181.15 124.6.181.25 124.6.181.26 124.6.181.30)
+  best_dns=""; best_ms=9999
+
+  for ip in "${DNS_CANDIDATES[@]}"; do
+    out=$(ping -c1 -W2 "$ip" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "  $ip — "; color_ping "$ms"
+      (( ms < best_ms )) && best_ms=$ms && best_dns=$ip
+    else
+      echo -e "  $ip — ${RED}Unreachable${NC}"
+    fi
+  done
+
+  if [[ "$best_dns" ]]; then
+    echo -e "${GREEN}✅ Best Globe DNS: $best_dns ($best_ms ms)${NC}"
+    echo "$best_dns" > "$DNS_FILE"
+    echo -e "${CYAN}📁 DNS file updated with: $best_dns${NC}"
+  else
+    echo -e "${RED}✗ No Globe DNS is reachable right now.${NC}"
+  fi
+  sleep 3
 }
 
 start_monitor() {
@@ -175,7 +175,6 @@ start_monitor() {
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
-
   trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
 
   while true; do
@@ -199,6 +198,7 @@ main_menu() {
   echo "2) Edit NS Domains (1 per line)"
   echo "3) Edit Gateways (IPs Only)"
   echo "4) Run Monitor Script"
+  echo "5) Auto-Lookup Best Globe DNS"
   echo -e "0) Exit Script${NC}"
   echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
@@ -207,11 +207,11 @@ main_menu() {
     2) edit_ns_only ;;
     3) edit_gateways_only ;;
     4) start_monitor ;;
+    5) globe_dns_lookup ;;
     0) echo -e "${YELLOW}Thanks for using the script 💕${NC}"; exit 0 ;;
     *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
   esac
   main_menu
 }
 
-# Start script
 main_menu

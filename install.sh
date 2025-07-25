@@ -61,18 +61,24 @@ arch=$(uname -m)
 # ===== Editor Functions =====
 edit_dns_only() {
   echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
-  sleep 1; nano "$DNS_FILE"; exec bash "$0"
+  sleep 1
+  nano "$DNS_FILE"
+  exec bash "$0"
 }
 
+# ✅ FIXED FUNCTION — No longer clears your input
 edit_ns_only() {
   echo -e "${YELLOW}Edit NS Domains only (1 per line)...${NC}"
-  > "$NS_FILE"
-  sleep 1; nano "$NS_FILE"; exec bash "$0"
+  sleep 1
+  nano "$NS_FILE"
+  exec bash "$0"
 }
 
 edit_gateways_only() {
   echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
-  sleep 1; nano "$GW_FILE"; exec bash "$0"
+  sleep 1
+  nano "$GW_FILE"
+  exec bash "$0"
 }
 
 # ===== Utility =====
@@ -142,7 +148,6 @@ check_servers() {
         echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
       fi
 
-      # Force TCP in dig query for better compatibility
       timeout -k 3 3 "$_DIG" +tcp @"$dns_ip" "$domain" &>/dev/null
       if [[ $? -eq 0 ]]; then
         echo -e "       ${GREEN}✓ DNS Query OK${NC}"

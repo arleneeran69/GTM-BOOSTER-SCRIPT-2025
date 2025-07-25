@@ -1,53 +1,35 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3 - Dig-Only Edition
+# DNSTT Keep-Alive & DNS Monitor v2.3.4 - Fixed Ping Output + NS Save
 # Author: GeoDevz69 💕
-
-VER="2.3"
+VER="2.3.4"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="DEFAULT"
 VPN_INTERFACE="tun0"
 RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-PINK='\033[1;35m'
-NC='\033[0m'
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; WHITE='\033[1;37m'; PINK='\033[1;35m'; NC='\033[0m'
 
-# Config files
 DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
-
-# Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
-# Load data
 readarray -t DNS_LIST < "$DNS_FILE"
 readarray -t NS_LIST < "$NS_FILE"
 readarray -t GATEWAYS < "$GW_FILE"
 
-# Dig binary selection
 _DIG=$(command -v dig)
-[ ! -x "$_DIG" ] && {
-  echo -e "${RED}[!] dig not found or not executable. Please install it using:${NC}"
-  echo -e "${YELLOW}pkg install dnsutils${NC}"
-  exit 1
-}
+[ ! -x "$_DIG" ] && { echo -e "${RED}[!] dig not found.${NC}"; echo -e "${YELLOW}pkg install dnsutils${NC}"; exit 1; }
 
-# Arch check
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
   echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
   exit 1
 }
-
 [ ! -d "/data/data/com.termux" ] && {
   echo -e "${RED}This script runs only in Termux!${NC}"
   exit 1
@@ -56,29 +38,24 @@ arch=$(uname -m)
 trap main_menu INT
 
 edit_dns_only() {
-  echo -e "${YELLOW}Edit DNS IPs (1 per line, example: 124.6.181.25)...${NC}"
-  sleep 1
-  nano "$DNS_FILE"
-  main_menu
+  echo -e "${YELLOW}Edit DNS IPs (one per line)...${NC}"
+  sleep 1; nano "$DNS_FILE"; main_menu
 }
 
 edit_ns_only() {
-  if ! grep -q "example.com" "$NS_FILE"; then
+  # Don't auto-overwrite the file
+  if [ ! -s "$NS_FILE" ]; then
     echo "# Format: domain IP" > "$NS_FILE"
-    echo "# Example: gtm.codered-api.shop 1.2.3.4" >> "$NS_FILE"
+    echo "# Example: gtm.codered-api.shop 124.6.181.25" >> "$NS_FILE"
     echo "# One entry per line." >> "$NS_FILE"
   fi
-  echo -e "${YELLOW}Edit NS Servers (domain and IP)...${NC}"
-  sleep 1
-  nano "$NS_FILE"
-  main_menu
+  echo -e "${YELLOW}Edit NS Servers (domain + IP)...${NC}"
+  sleep 1; nano "$NS_FILE"; main_menu
 }
 
 edit_gateways_only() {
   echo -e "${YELLOW}Edit Gateway IPs or Hosts (1 per line)...${NC}"
-  sleep 1
-  nano "$GW_FILE"
-  main_menu
+  sleep 1; nano "$GW_FILE"; main_menu
 }
 
 color_ping() {
@@ -140,7 +117,6 @@ check_servers() {
     [[ -z "$domain" || -z "$ip" ]] && continue
 
     echo -e "\n[•] $domain @ $ip"
-
     ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
     if [[ $? -eq 0 ]]; then
       ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
@@ -178,8 +154,7 @@ auto_ping_dns_list() {
   done
   [[ "$best_dns" ]] && echo -e "\n✅ ${GREEN}Best DNS: $best_dns — $(color_ping $best_ping)"
   echo -e "\n${YELLOW}Done. Returning to menu...${NC}"
-  sleep 2
-  main_menu
+  sleep 2; main_menu
 }
 
 reset_list_menu() {
@@ -193,14 +168,14 @@ reset_list_menu() {
   echo -ne "${PINK}Choose Option: ${NC}"
   read reset_choice
   case "$reset_choice" in
-    1) > "$DNS_FILE"; echo -e "${GREEN}DNS list cleared.${NC}"; sleep 1 ;;
-    2) > "$NS_FILE"; echo -e "${GREEN}NS list cleared.${NC}"; sleep 1 ;;
-    3) > "$GW_FILE"; echo -e "${GREEN}Gateway list cleared.${NC}"; sleep 1 ;;
-    4) > "$DNS_FILE"; > "$NS_FILE"; > "$GW_FILE"; echo -e "${GREEN}All lists cleared.${NC}"; sleep 1 ;;
+    1) > "$DNS_FILE"; echo -e "${GREEN}DNS list cleared.${NC}" ;;
+    2) > "$NS_FILE"; echo -e "${GREEN}NS list cleared.${NC}" ;;
+    3) > "$GW_FILE"; echo -e "${GREEN}Gateway list cleared.${NC}" ;;
+    4) > "$DNS_FILE"; > "$NS_FILE"; > "$GW_FILE"; echo -e "${GREEN}All lists cleared.${NC}" ;;
     0) main_menu ;;
-    *) echo -e "${RED}Invalid option.${NC}"; sleep 1 ;;
+    *) echo -e "${RED}Invalid option.${NC}" ;;
   esac
-  main_menu
+  sleep 1; main_menu
 }
 
 start_monitor() {

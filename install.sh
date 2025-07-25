@@ -1,9 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.4 - Separated Menu Input
+# DNSTT Keep-Alive & DNS Monitor v2.3
 # Author: GeoDevz69 💕
 
-VER="2.4"
+VER="2.3"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -25,8 +25,55 @@ DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
 
-# Ensure files exist
+# Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
+
+# Load data
+readarray -t DNS_LIST < "$DNS_FILE"
+readarray -t NS_LIST < "$NS_FILE"
+readarray -t GATEWAYS < "$GW_FILE"
+
+# Choose dig binary
+case "$DIG_EXEC" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
+  *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
+esac
+
+[ ! -x "$_DIG" ] && {
+  echo -e "${RED}[!] dig not found or not executable: $_DIG${NC}"
+  exit 1
+}
+
+arch=$(uname -m)
+[[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
+  echo -e "${RED}Unsupported architecture: $arch${NC}"
+  echo -e "${YELLOW}Use Termux version for: aarch64 or x86_64${NC}"
+  exit 1
+}
+[ ! -d "/data/data/com.termux" ] && {
+  echo -e "${RED}This script runs only in Termux!${NC}"
+  exit 1
+}
+
+# ===== Editor Functions =====
+edit_dns_only() {
+  echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
+  sleep 1; nano "$DNS_FILE"; exec bash "$0"
+}
+
+edit_ns_only() {
+  echo -e "${YELLOW}Edit NS entries only (format: domain IP)...${NC}"
+  echo "# Enter one NS entry per line in this format:" > "$NS_FILE"
+  echo "# example.com 1.2.3.4" >> "$NS_FILE"
+  echo "# Do NOT include DNS-only lines here!" >> "$NS_FILE"
+  sleep 1; nano "$NS_FILE"; exec bash "$0"
+}
+
+edit_gateways_only() {
+  echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
+  sleep 1; nano "$GW_FILE"; exec bash "$0"
+}
 
 # ===== Utility =====
 color_ping() {
@@ -61,7 +108,6 @@ check_speed() {
 
 check_gateways() {
   echo -e "\n🌐 Gateway Ping:"
-  readarray -t GATEWAYS < "$GW_FILE"
   best_gw=""; best_ping=9999
   for gw in "${GATEWAYS[@]}"; do
     out=$(ping -c1 -W2 "$gw" 2>/dev/null)
@@ -78,7 +124,6 @@ check_gateways() {
 
 check_servers() {
   echo -e "\n🔍 Checking NS Servers:"
-  readarray -t NS_LIST < "$NS_FILE"
   fail_count=0; best_ns=""; best_ping=9999
 
   for entry in "${NS_LIST[@]}"; do
@@ -109,27 +154,10 @@ check_servers() {
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
 }
 
-# ===== Editor Functions =====
-edit_ns_entries() {
-  echo -e "${YELLOW}Edit NS (format: domain IP)...${NC}"
-  echo -e "# Format: domain IP\n# Example: gtm.codered-api.shop 124.6.181.25" > "$NS_FILE"
-  sleep 1; nano "$NS_FILE"
-}
-
-edit_dns_only() {
-  echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
-  sleep 1; nano "$DNS_FILE"
-}
-
-edit_gateways_only() {
-  echo -e "${YELLOW}Edit Gateway IPs only (1 per line)...${NC}"
-  sleep 1; nano "$GW_FILE"
-}
-
 start_monitor() {
   clear
   echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║     GBooster Tool v$VER            ║"
+  echo -e "║     GBooster Toolv$VER   ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
@@ -144,24 +172,25 @@ start_monitor() {
 }
 
 # ===== Main Menu =====
-while true; do
-  clear
-  echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║         GTM Booster Menu          ║"
-  echo -e "╚════════════════════════════════════╝${NC}"
-  echo -e "${WHITE}1) Edit NS (domain IP only)"
-  echo "2) Edit DNS IPs only"
-  echo "3) Edit Gateways only"
-  echo "4) Start DNSTT Monitor"
-  echo -e "0) Exit Script${NC}"
-  echo -ne "${PINK}Choose Option: ${NC}"; read choice
+clear
+echo -e "${PINK}╔═══════════════════════════════╗"
+echo -e "║       GTM Main Menu       ║"
+echo -e "╚═══════════════════════════════╝${NC}"
+echo -e "${WHITE}1) Edit DNS List (IPs Only)"
+echo "2) Edit NS Servers (Domain Only)"
+echo "3) Edit Gateways (IPs Only)"
+echo "4) Run Script"
+echo -e "0) Exit Script ${NC}"
+echo -ne "${PINK}Choose Option: ${NC}"; read choice
 
-  case "$choice" in
-    1) edit_ns_entries ;;
-    2) edit_dns_only ;;
-    3) edit_gateways_only ;;
-    4) start_monitor ;;
-    0) echo -e "${YELLOW}Thank you for using this script 💕${NC}"; exit 0 ;;
-    *) echo -e "${RED}Invalid option. Try again.${NC}"; sleep 1 ;;
-  esac
-done
+case "$choice" in
+  1) edit_dns_only ;;
+  2) edit_ns_only ;;
+  3) edit_gateways_only ;;
+  4) start_monitor ;;
+  0) echo -e "${YELLOW}Thanks For Using this Script 💕.${NC}"; exit 0 ;;
+  *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
+esac
+
+
+

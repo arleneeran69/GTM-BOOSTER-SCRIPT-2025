@@ -5,6 +5,8 @@
 
 # Colors
 PINK='\033[1;35m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
 NC='\033[0m'
 
 # Files
@@ -94,8 +96,13 @@ start_monitor() {
         echo -e "\n${PINK}Checking DNS Servers:${NC}"
         for ip in "${DNS_LIST[@]}"; do
             ms=$(ping -c 1 -W 1 "$ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
-            [[ -z "$ms" ]] && ms="timeout"
-            echo -e "${PINK}• $ip → ${ms} ms${NC}"
+            if [[ -z "$ms" ]]; then
+                echo -e "${RED}• $ip → timeout${NC}"
+            elif (( $(echo "$ms < 100" | bc -l) )); then
+                echo -e "${GREEN}• $ip → $ms ms${NC}"
+            else
+                echo -e "${RED}• $ip → $ms ms${NC}"
+            fi
         done
 
         echo -e "\n${PINK}Checking NS Servers:${NC}"
@@ -103,15 +110,25 @@ start_monitor() {
             ns_ip=$(echo "$entry" | awk '{print $2}')
             ns_host=$(echo "$entry" | awk '{print $1}')
             ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
-            [[ -z "$ms" ]] && ms="timeout"
-            echo -e "${PINK}• $ns_host ($ns_ip) → ${ms} ms${NC}"
+            if [[ -z "$ms" ]]; then
+                echo -e "${RED}• $ns_host ($ns_ip) → timeout${NC}"
+            elif (( $(echo "$ms < 100" | bc -l) )); then
+                echo -e "${GREEN}• $ns_host ($ns_ip) → $ms ms${NC}"
+            else
+                echo -e "${RED}• $ns_host ($ns_ip) → $ms ms${NC}"
+            fi
         done
 
         echo -e "\n${PINK}Checking Gateway IPs:${NC}"
         for gw in "${GW_LIST[@]}"; do
             ms=$(ping -c 1 -W 1 "$gw" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print $1}')
-            [[ -z "$ms" ]] && ms="timeout"
-            echo -e "${PINK}• $gw → ${ms} ms${NC}"
+            if [[ -z "$ms" ]]; then
+                echo -e "${RED}• $gw → timeout${NC}"
+            elif (( $(echo "$ms < 100" | bc -l) )); then
+                echo -e "${GREEN}• $gw → $ms ms${NC}"
+            else
+                echo -e "${RED}• $gw → $ms ms${NC}"
+            fi
         done
 
         echo -e "${PINK}──────────────────────────────${NC}"

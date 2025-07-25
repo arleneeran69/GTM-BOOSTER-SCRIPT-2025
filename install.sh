@@ -1,13 +1,12 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3
+# DNSTT Keep-Alive & DNS Monitor v2.3 - Dig-Only Edition
 # Author: GeoDevz69 💕
 
 VER="2.3"
 LOOP_DELAY=5
 FAIL_LIMIT=5
-DIG_EXEC="CUSTOM"
-CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
+DIG_EXEC="DEFAULT"
 VPN_INTERFACE="tun0"
 RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 
@@ -34,17 +33,14 @@ readarray -t NS_LIST < "$NS_FILE"
 readarray -t GATEWAYS < "$GW_FILE"
 
 # Dig binary selection
-case "$DIG_EXEC" in
-  DEFAULT|D) _DIG=$(command -v dig) ;;
-  CUSTOM|C) _DIG="$CUSTOM_DIG" ;;
-  *) echo -e "${RED}[!] Invalid DIG_EXEC: $DIG_EXEC${NC}"; exit 1 ;;
-esac
-
+_DIG=$(command -v dig)
 [ ! -x "$_DIG" ] && {
-  echo -e "${RED}[!] dig not found or not executable: $_DIG${NC}"
+  echo -e "${RED}[!] dig not found or not executable. Please install it using:${NC}"
+  echo -e "${YELLOW}pkg install dnsutils${NC}"
   exit 1
 }
 
+# Arch check
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
@@ -144,7 +140,7 @@ check_servers() {
       echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
     fi
 
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
+    timeout -k 3 3 "$_DIG" @"$ip" "$domain" +short &>/dev/null
     if [[ $? -eq 0 ]]; then
       echo -e "    ${GREEN}✓ DNS Query OK${NC}"
     else
@@ -156,7 +152,6 @@ check_servers() {
   (( fail_count >= FAIL_LIMIT )) && restart_vpn
 }
 
-# ===== Extra Features =====
 auto_ping_dns_list() {
   echo -e "\n${CYAN}📡 Auto-Ping Test: DNS IP List (Globe)...${NC}"
   best_dns=""; best_ping=9999

@@ -1,9 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3
+# DNSTT Keep-Alive & DNS Monitor v2.3.1 - Domain Only NS Edition
 # Author: GeoDevz69 💕
 
-VER="2.3"
+VER="2.3.1"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
@@ -63,10 +63,8 @@ edit_dns_only() {
 }
 
 edit_ns_only() {
-  echo -e "${YELLOW}Edit NS entries only (format: domain IP)...${NC}"
-  echo "# Enter one NS entry per line in this format:" > "$NS_FILE"
-  echo "# example.com 1.2.3.4" >> "$NS_FILE"
-  echo "# Do NOT include DNS-only lines here!" >> "$NS_FILE"
+  echo -e "${YELLOW}Edit NS Domains only (1 per line)...${NC}"
+  > "$NS_FILE"
   sleep 1; nano "$NS_FILE"; exec bash "$0"
 }
 
@@ -123,31 +121,35 @@ check_gateways() {
 }
 
 check_servers() {
-  echo -e "\n🔍 Checking NS Servers:"
+  echo -e "\n🔍 Checking NS Domains:"
   fail_count=0; best_ns=""; best_ping=9999
 
-  for entry in "${NS_LIST[@]}"; do
-    domain=$(echo "$entry" | awk '{print $1}')
-    ip=$(echo "$entry" | awk '{print $2}')
-    [[ -z "$domain" || -z "$ip" ]] && continue
+  for domain in "${NS_LIST[@]}"; do
+    [[ -z "$domain" ]] && continue
+    echo -e "\n[•] $domain"
 
-    echo -e "\n[•] $domain @ $ip"
+    best_this=9999; found=0
+    for dns_ip in "${DNS_LIST[@]}"; do
+      ping_out=$(ping -c1 -W2 "$dns_ip" 2>/dev/null)
+      if [[ $? -eq 0 ]]; then
+        ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+        echo -ne "    ↳ $dns_ip — "; color_ping "$ping_ms"
+        (( ping_ms < best_this )) && best_this=$ping_ms && best_ns="$domain via $dns_ip"
+        found=1
+      else
+        echo -e "    ↳ $dns_ip — ${RED}Unreachable${NC}"
+      fi
 
-    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "    ✓ Ping OK — "; color_ping "$ping_ms"
-      (( ping_ms < best_ping )) && best_ping=$ping_ms && best_ns="$domain @ $ip"
-    else
-      echo -e "    ✗ ${RED}Ping FAIL${NC}"; ((fail_count++)); continue
-    fi
+      timeout -k 3 3 "$_DIG" @"$dns_ip" "$domain" &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo -e "       ${GREEN}✓ DNS Query OK${NC}"
+      else
+        echo -e "       ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
+      fi
+    done
 
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
-    if [[ $? -eq 0 ]]; then
-      echo -e "    ${GREEN}✓ DNS Query OK${NC}"
-    else
-      echo -e "    ${RED}✗ DNS Query FAIL${NC}"; ((fail_count++))
-    fi
+    (( found == 0 )) && echo -e "    ${RED}✗ All DNS Unreachable for $domain${NC}"
+    (( best_this < best_ping )) && best_ping=$best_this
   done
 
   [[ "$best_ns" ]] && echo -e "\n🌟 ${GREEN}Fastest NS: $best_ns [$best_ping ms]${NC}"
@@ -157,7 +159,7 @@ check_servers() {
 start_monitor() {
   clear
   echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "║     GBooster Toolv$VER   ║"
+  echo -e "║     GBooster Tool v$VER            ║"
   echo -e "╚════════════════════════════════════╝${NC}"
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
@@ -174,10 +176,10 @@ start_monitor() {
 # ===== Main Menu =====
 clear
 echo -e "${PINK}╔═══════════════════════════════╗"
-echo -e "║       GTM Main Menu       ║"
+echo -e "║         GTM Main Menu         ║"
 echo -e "╚═══════════════════════════════╝${NC}"
 echo -e "${WHITE}1) Edit DNS List (IPs Only)"
-echo "2) Edit NS Servers (Domain Only)"
+echo "2) Edit NS Domains (1 per line)"
 echo "3) Edit Gateways (IPs Only)"
 echo "4) Run Script"
 echo -e "0) Exit Script ${NC}"
@@ -191,6 +193,3 @@ case "$choice" in
   0) echo -e "${YELLOW}Thanks For Using this Script 💕.${NC}"; exit 0 ;;
   *) echo -e "${RED}Invalid option.${NC}"; exit 1 ;;
 esac
-
-
-

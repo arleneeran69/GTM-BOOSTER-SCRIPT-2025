@@ -7,7 +7,7 @@ LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="DEFAULT"
 VPN_INTERFACE="tun0"
-RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
+RESTART_CMD="$HOME/dnstt/start-client.sh"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; WHITE='\033[1;37m'; PINK='\033[1;35m'; NC='\033[0m'
@@ -43,7 +43,6 @@ edit_dns_only() {
 }
 
 edit_ns_only() {
-  # Don't auto-overwrite the file
   if [ ! -s "$NS_FILE" ]; then
     echo "# Format: domain IP" > "$NS_FILE"
     echo "# Example: gtm.codered-api.shop 124.6.181.25" >> "$NS_FILE"
@@ -72,8 +71,13 @@ color_ping() {
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
-  eval "$RESTART_CMD" &
-  sleep 2
+  if [[ -f "$RESTART_CMD" ]]; then
+    bash "$RESTART_CMD" &
+    sleep 2
+  else
+    echo -e "${RED}[✘] Restart script not found: $RESTART_CMD${NC}"
+    echo -e "${YELLOW}Please check that the file exists and is executable.${NC}"
+  fi
 }
 
 check_interface() {

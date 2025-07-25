@@ -2,14 +2,13 @@
 
 # DNSTT Keep-Alive & DNS Monitor v2.3.1 - Domain Only NS Edition
 # Author: GeoDevz69 💕
-
 VER="2.3.1"
 LOOP_DELAY=5
 FAIL_LIMIT=5
 DIG_EXEC="CUSTOM"
 CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
 VPN_INTERFACE="tun0"
-RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
+RESTART_CMD="$HOME/dnstt/start-client.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -24,6 +23,13 @@ NC='\033[0m'
 DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
+
+# Create placeholder DNSTT script if missing
+[[ ! -f "$RESTART_CMD" ]] && {
+  mkdir -p "$HOME/dnstt"
+  echo -e "#!/data/data/com.termux/files/usr/bin/bash\n# Placeholder DNSTT client starter\nexit 0" > "$RESTART_CMD"
+  chmod +x "$RESTART_CMD"
+}
 
 # Create empty files if missing
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
@@ -53,6 +59,7 @@ else
 fi
 
 # ========== Functions ==========
+
 edit_dns_only() {
   echo -e "${YELLOW}Edit DNS IPs only (1 per line)...${NC}"
   sleep 1; nano "$DNS_FILE"
@@ -78,7 +85,15 @@ color_ping() {
 restart_vpn() {
   echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
   pkill -f dnstt-client 2>/dev/null
-  eval "$RESTART_CMD" &
+
+  if [ -f "$RESTART_CMD" ]; then
+    bash "$RESTART_CMD" &>/dev/null &
+    echo -e "${GREEN}[✓] Restart command sent.${NC}"
+  else
+    echo -e "${RED}[✗] DNSTT start script not found: $RESTART_CMD${NC}"
+    echo -e "${YELLOW}Please check or create the file to auto-restart DNSTT.${NC}"
+  fi
+
   sleep 2
 }
 
@@ -161,7 +176,6 @@ start_monitor() {
   echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
   echo -e "${YELLOW}Monitoring started. Press CTRL+C to return to menu.${NC}"
 
-  # Trap CTRL+C and return to main menu
   trap 'echo -e "\n${CYAN}Returning to menu...${NC}"; main_menu' SIGINT
 
   while true; do
@@ -176,7 +190,7 @@ start_monitor() {
 
 # ========== Menu ==========
 main_menu() {
-  trap '' SIGINT  # Disable trap when in menu
+  trap '' SIGINT
   clear
   echo -e "${PINK}╔═══════════════════════════════╗"
   echo -e "║         GTM Main Menu         ║"

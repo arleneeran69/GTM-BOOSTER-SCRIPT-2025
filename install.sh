@@ -24,15 +24,15 @@ DNS_FILE="$HOME/.dns_list.txt"
 NS_FILE="$HOME/.ns_list.txt"
 GW_FILE="$HOME/.gateway_list.txt"
 
-# Create placeholder if missing
+# Create placeholders if missing
 [[ ! -f "$RESTART_CMD" ]] && {
   mkdir -p "$HOME/dnstt"
   echo -e "#!/data/data/com.termux/files/usr/bin/bash\nexit 0" > "$RESTART_CMD"
   chmod +x "$RESTART_CMD"
 }
-
 touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
 
+# System checks
 arch=$(uname -m)
 [[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
   echo -e "${RED}Unsupported architecture: $arch${NC}"
@@ -57,7 +57,7 @@ else
   [[ -z "$_DIG" ]] && echo -e "${RED}[!] dig not found. Exiting.${NC}" && exit 1
 fi
 
-# ========== Functions ==========
+# ===== Functions =====
 
 edit_dns_only() { echo -e "${YELLOW}Edit DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; }
 edit_ns_only() { echo -e "${YELLOW}Edit NS Domains only...${NC}"; sleep 1; nano "$NS_FILE"; }
@@ -161,8 +161,9 @@ globe_dns_lookup() {
 
   if [[ "$best_dns" ]]; then
     echo -e "${GREEN}✅ Best Globe DNS: $best_dns ($best_ms ms)${NC}"
-    echo "$best_dns" > "$DNS_FILE"
-    echo -e "${CYAN}📁 DNS file updated with: $best_dns${NC}"
+    # Append without overwriting
+    grep -qxF "$best_dns" "$DNS_FILE" || echo "$best_dns" >> "$DNS_FILE"
+    echo -e "${CYAN}📁 DNS list updated with: $best_dns${NC}"
   else
     echo -e "${RED}✗ No Globe DNS is reachable right now.${NC}"
   fi

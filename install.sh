@@ -229,7 +229,7 @@ main_menu() {
   trap '' SIGINT
   clear
   echo -e "${PINK}╔═════════════════════════════════╗"
-  echo -e "║        📡 GTM BOOSTER 📡        ║"
+  echo -e "║       📡 GTM BOOSTER 📡      ║"
   echo -e "╚═════════════════════════════════╝${NC}"
   echo -e "${WHITE}1) Edit DNS List (IPs Only)"
   echo "2) Edit NS Domains (1 per line)"

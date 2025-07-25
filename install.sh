@@ -108,27 +108,23 @@ start_monitor() {
 
             ms=$(ping -c 1 -W 1 "$ns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
 
+            # Determine latency color
             if [[ -z "$ms" ]]; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}No ping${NC}"
-                continue
-            fi
-
-            # Latency color
-            if [[ "$ms" -lt 80 ]]; then
-                ms_color="$GREEN"
+                ms_display="${RED}No ping${NC}"
+            elif [[ "$ms" -lt 80 ]]; then
+                ms_display="${GREEN}${ms} ms${NC}"
             elif [[ "$ms" -lt 200 ]]; then
-                ms_color="$YELLOW"
+                ms_display="${YELLOW}${ms} ms${NC}"
             else
-                ms_color="$RED"
+                ms_display="${RED}${ms} ms${NC}"
             fi
 
+            # Run dig and evaluate output
             dig_out=$(timeout 2s dig @"$ns_ip" "$ns_domain" +noall +answer)
             if [[ -z "$dig_out" ]]; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${ms_color}${ms} ms${NC}"
-            elif echo "$dig_out" | grep -q "$ns_domain"; then
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${ms_color}${ms} ms${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${RED}FAIL${NC} ${ms_display}"
             else
-                echo -e "${PINK}• $ns_domain ($ns_ip) → ${YELLOW}No answer${NC} ${ms_color}${ms} ms${NC}"
+                echo -e "${PINK}• $ns_domain ($ns_ip) → ${GREEN}OK${NC} ${ms_display}"
             fi
         done
 

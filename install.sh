@@ -54,13 +54,13 @@ edit_menu() {
   printf "\e[1;35m %*s%s%*s \e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
   echo -e "\e[1;35m╚══════════════════════════════════════╝\e[0m"
 
-  echo -e "\e[1;32m╔═════════════GTM•MAIN•MENU═════════════╗"
+  echo -e "\e[1;32m╔═════════════GTM•MAIN•MENU════════════╗"
   echo -e "  1) Edit NS Domains + DNS IPs"
   echo -e "  2) Edit Gateways"
   echo -e "  3) Edit Loop Delay"
   echo -e "  4) Start Monitoring"
   echo -e "  0) Exit Script Now"
-  echo -e "╚════════════════════════════════════════╝\e[0m"
+  echo -e "╚══════════════════════════════════════╝\e[0m"
   echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in

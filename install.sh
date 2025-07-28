@@ -45,7 +45,7 @@ color_ping() {
   else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
-# Menu
+# Fixed Menu
 edit_menu() {
   clear
   box_width=33
@@ -64,18 +64,18 @@ edit_menu() {
   echo -e "\e[1;32m╔═════════════════════════════════╗"
   echo -e "  1) Edit NS Domains + DNS IPs"
   echo -e "  2) Edit Gateways"
-  echo -e "  3) Edit Loops Delay"
-  echo -e "  4) Inject Now"
+  echo -e "  3) Edit Loop Delay"
+  echo -e "  4) Start Monitoring"
   echo -e "  0) Exit Script Now"
   echo -e "╚═════════════════════════════════╝\e[0m"
-  echo -ne "\n\e[1;32mChoose option [0–3 or 9]: \e[0m"
+  echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in
     1) nano "$NS_FILE" ;;
     2) nano "$GW_FILE" ;;
     3) nano "$DELAY_FILE" ;;
-    0) main_loop ;;
-    9) echo -e "\n👋 Exiting GTM Booster. Stay fast!"; exit 0 ;;
+    4) main_loop ;;
+    0) echo -e "\n👋 Exiting GTM Booster. Stay fast!"; exit 0 ;;
     *) echo -e "\e[31mInvalid option. Try again.\e[0m"; sleep 1 ;;
   esac
   edit_menu
@@ -191,5 +191,5 @@ main_loop() {
   done
 }
 
-# Launch Menu
+# Start
 edit_menu

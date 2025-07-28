@@ -1,197 +1,180 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# DNSTT Keep-Alive & DNS Monitor v2.3.7
-# Author: GeoDevz69 💕 (Enhanced by ChatGPT)
+## GTM | BOOSTER v2.2.1 - Persistent Configs + Editable via Nano
+## Author: GeoDevz69 | Enhanced by ChatGPT
 
-VER="2.3.7"
-LOOP_DELAY=5
-FAIL_LIMIT=5
+VER="2.2.1"
 VPN_INTERFACE="tun0"
 RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
+CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
+DIG_EXEC="DEFAULT"
+FAIL_LIMIT=5
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-PINK='\033[1;35m'
-NC='\033[0m'
+DNS_FILE=".dns_list.txt"
+NS_FILE=".ns_list.txt"
+GW_FILE=".gw_list.txt"
+DELAY_FILE=".loop_delay.txt"
 
-# Config files
-DNS_FILE="$HOME/.dns_list.txt"
-NS_FILE="$HOME/.ns_list.txt"
-GW_FILE="$HOME/.gateway_list.txt"
+# Ensure files exist
+[[ ! -f $DNS_FILE ]] && echo -e "124.6.181.25\n124.6.181.26" > "$DNS_FILE"
+[[ ! -f $NS_FILE ]] && echo -e "gtm.codered-api.shop\nns.jkrol.fiber-x.shop" > "$NS_FILE"
+[[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
+[[ ! -f $DELAY_FILE ]] && echo "5" > "$DELAY_FILE"
 
-touch "$DNS_FILE" "$NS_FILE" "$GW_FILE"
+trap 'echo -e "\n[+] Exiting..."; exit 0' SIGINT SIGTERM
 
-load_data() {
-  readarray -t DNS_LIST < "$DNS_FILE"
-  readarray -t NS_LIST < "$NS_FILE"
-  readarray -t GATEWAYS < "$GW_FILE"
-}
+# DIG Executable
+case "${DIG_EXEC}" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
+  *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
+esac
 
-_DIG=$(command -v dig)
-[ ! -x "$_DIG" ] && { echo -e "${RED}[!] dig not found.${NC}"; exit 1; }
+[ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
 
-arch=$(uname -m)
-[[ "$arch" != "aarch64" && "$arch" != "x86_64" ]] && {
-  echo -e "${RED}Unsupported arch: $arch${NC}"; exit 1;
-}
-
-[ ! -d "/data/data/com.termux" ] && {
-  echo -e "${RED}Only runs in Termux!${NC}"; exit 1;
-}
-
-edit_dns_only() { echo -e "${YELLOW}Edit DNS IPs only...${NC}"; sleep 1; nano "$DNS_FILE"; }
-edit_ns_only()  { echo -e "${YELLOW}Edit NS entries (domain IP)...${NC}"; sleep 1; nano "$NS_FILE"; }
-edit_gateways_only() { echo -e "${YELLOW}Edit Gateway IPs only...${NC}"; sleep 1; nano "$GW_FILE"; }
-
+# Ping Color
 color_ping() {
-  ms=$1
-  if (( ms <= 100 )); then echo -e "${GREEN}${ms}ms FAST${NC}"
-  elif (( ms <= 250 )); then echo -e "${YELLOW}${ms}ms MEDIUM${NC}"
-  else echo -e "${RED}${ms}ms SLOW${NC}"; fi
+  local ms=$1
+  if [[ $ms -le 100 ]]; then echo -e "\e[32m${ms}ms FAST\e[0m"
+  elif [[ $ms -le 250 ]]; then echo -e "\e[33m${ms}ms MEDIUM\e[0m"
+  else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
+# Edit Menus (with centered art)
+edit_menu() {
+  clear
+  echo -e "\n\e[1;35m╔═════════════════════════════╗"
+  echo -e "       GDEVZ GTM BOOSTER      "
+  echo -e "         Script Version: 1.0  "
+  echo -e "╚═════════════════════════════╝\e[0m"
+  
+  echo -e "\n\e[1;36m🛠️ Configuration Menu:\e[0m"
+  echo -e "╔═════════════════════════════╗"
+  echo -e "  1) Edit NS Domains   (.ns_list.txt)"
+  echo -e "  2) Edit DNS IPs      (.dns_list.txt)"
+  echo -e "  3) Edit Gateways     (.gw_list.txt)"
+  echo -e "  4) Edit Loop Delay   (.loop_delay.txt)"
+  echo -e "  0) Start Monitoring"
+  echo -e "╚═════════════════════════════╝"
+  echo -ne "\nChoose option [0–4]: "
+  read opt
+  case $opt in
+    1) nano "$NS_FILE" ;;
+    2) nano "$DNS_FILE" ;;
+    3) nano "$GW_FILE" ;;
+    4) nano "$DELAY_FILE" ;;
+    0) return ;;
+    *) echo "Invalid option. Try again."; sleep 1 ;;
+  esac
+  edit_menu
+}
+
+# VPN Interface Check
+check_interface() {
+  if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
+    echo -e "\n[✓] $VPN_INTERFACE is UP"
+  else
+    echo -e "\n[✗] $VPN_INTERFACE is DOWN"
+    restart_vpn
+  fi
+}
+
+# Restart Tunnel
 restart_vpn() {
-  echo -e "\n${YELLOW}[!] Restarting DNSTT Client...${NC}"
+  echo -e "\n\e[33m[!] Restarting DNSTT Client...\e[0m"
   pkill -f dnstt-client 2>/dev/null
   eval "$RESTART_CMD" &
   sleep 2
 }
 
-check_interface() {
-  ip link show "$VPN_INTERFACE" &>/dev/null && \
-    echo -e "✅ ${GREEN}$VPN_INTERFACE is UP${NC}" || {
-    echo -e "❌ ${RED}$VPN_INTERFACE is DOWN${NC}"; restart_vpn;
-  }
-}
-
+# VPN RX/TX
 check_speed() {
-  stats=$(ip -s link show "$VPN_INTERFACE" | grep -A1 'RX:' | tail -n1)
+  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
   RX=$(echo "$stats" | awk '{print $1}')
   TX=$(echo "$stats" | awk '{print $9}')
-  echo -e "📶 RX=${RX}B | TX=${TX}B"
+  echo -e "    🔄 RX=${RX}B | TX=${TX}B"
 }
 
-get_best_gateway() {
-  best_gw=""; best_ping=9999
-  for gw in "${GATEWAYS[@]}"; do
-    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      (( ms < best_ping )) && best_ping=$ms && best_gw=$gw
-    fi
-  done
-  echo "$best_gw"
-}
-
-get_best_dns() {
-  best_dns=""; best_ping=9999
-  for dns in "${DNS_LIST[@]}"; do
-    out=$(ping -c1 -W2 "$dns" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      (( ms < best_ping )) && best_ping=$ms && best_dns=$dns
-    fi
-  done
-  echo "$best_dns"
-}
-
-check_servers() {
-  echo -e "\n🔍 Checking NS Servers:"
-  fail_count=0
-
-  best_gateway=$(get_best_gateway)
-  best_dns=$(get_best_dns)
-
-  for entry in "${NS_LIST[@]}"; do
-    domain=$(echo "$entry" | awk '{print $1}')
-    ip=$(echo "$entry" | awk '{print $2}')
-    [[ -z "$domain" || -z "$ip" ]] && continue
-
-    ping_out=$(ping -c1 -W2 "$ip" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      latency_status=$(color_ping "$ping_ms")
-    else
-      ping_ms="Unreachable"
-      latency_status="${RED}✗ Ping FAIL${NC}"
-      ((fail_count++))
-    fi
-
-    query_status=""
-    timeout -k 3 3 "$_DIG" @"$ip" "$domain" &>/dev/null
-    [[ $? -eq 0 ]] && query_status="${GREEN}✓ Query OK${NC}" || {
-      query_status="${RED}✗ Query FAIL${NC}"
-      ((fail_count++))
-    }
-
-    echo -e "\n${CYAN}NS Domain:${NC} $domain"
-    echo -e "${CYAN}Recommended DNS:${NC} $best_dns"
-    echo -e "${CYAN}Recommended Gateway:${NC} $best_gateway"
-    echo -e "${CYAN}Status Ping:${NC} $latency_status"
-    echo -e "        $query_status"
-  done
-
-  (( fail_count >= FAIL_LIMIT )) && restart_vpn
-}
-
+# Check Gateways
 check_gateways() {
-  echo -e "\n🌐 Gateway Ping:"
-  for gw in "${GATEWAYS[@]}"; do
+  echo -e "\n🌐 Checking Gateways:"
+  local best_gw=""
+  local best_ping=9999
+  while read -r gw; do
+    [[ -z "$gw" ]] && continue
     out=$(ping -c1 -W2 "$gw" 2>/dev/null)
     if [[ $? -eq 0 ]]; then
       ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "  $gw — "; color_ping "$ms"
+      echo -ne "    $gw — "
+      color_ping "$ms"
+      if [[ $ms -lt $best_ping ]]; then
+        best_ping=$ms
+        best_gw=$gw
+      fi
     else
-      echo -e "  $gw — ${RED}Unreachable${NC}"
+      echo -e "    $gw — \e[31mUnreachable\e[0m"
     fi
-  done
+  done < "$GW_FILE"
+  if [[ -n "$best_gw" ]]; then
+    echo -e "\n✅ Best Gateway: \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
+  else
+    echo -e "\n⚠️ No reachable gateways."
+  fi
 }
 
-start_monitor() {
-  clear
-  load_data
-  echo -e "${PINK}╔════════════════════════════════════╗"
-  echo -e "     GTM | BOOSTER v$VER              "
-  echo -e "╚════════════════════════════════════╝${NC}"
-  echo -e "${WHITE}🟢 FAST ≤100ms   🟡 MEDIUM ≤250ms   🔴 SLOW >250ms${NC}"
-  echo -e "${YELLOW}Monitoring started. CTRL+C to stop.${NC}"
-  while true; do
-    load_data
-    check_interface
-    check_speed
-    check_gateways
-    check_servers
-    echo -e "\n${CYAN}-------------------------------${NC}"
-    sleep "$LOOP_DELAY"
-  done
+# DNS+NS Monitor
+check_servers() {
+  local total_ok=0
+  local total_fail=0
+  local fail_count=0
+  echo -e "\n🔍 Checking NS & DNS:"
+  while read -r ns_domain; do
+    [[ -z "$ns_domain" ]] && continue
+    while read -r dns_ip; do
+      [[ -z "$dns_ip" ]] && continue
+      echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
+
+      if ping -c1 -W2 "$dns_ip" > /dev/null; then
+        ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+        echo -ne "    \e[32m✓ Ping OK\e[0m — "
+        color_ping "$ping_ms"
+      else
+        echo -e "    \e[31m✗ Ping FAIL\e[0m"
+        ((fail_count++)); ((total_fail++))
+        continue
+      fi
+
+      if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
+        echo -e "    \e[32m✓ DNS Query OK\e[0m"
+        ((total_ok++))
+      else
+        echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
+        ((fail_count++)); ((total_fail++))
+      fi
+    done < "$DNS_FILE"
+  done < "$NS_FILE"
+
+  echo -e "\n📊 Result: OK=$total_ok | FAIL=$total_fail"
+
+  if (( fail_count >= FAIL_LIMIT )); then
+    echo -e "\n\e[31m[!] Too many failures — restarting tunnel\e[0m"
+    restart_vpn
+  fi
 }
 
-main_menu() {
-  while true; do
-    clear
-    echo -e "${PINK}╔═══════════════════════════════╗"
-    echo -e "       GTM SCRIPT MENU         "
-    echo -e "╚═══════════════════════════════╝${NC}"
-    echo -e "${WHITE}1) Edit DNS List (IPs Only)"
-    echo "2) Edit NS Servers (Domain + IP)"
-    echo "3) Edit Gateways (IPs Only)"
-    echo "4) Run Monitor Script"
-    echo -e "0) Exit Script ${NC}"
-    echo -ne "${PINK}Choose Option: ${NC}"; read choice
+### 🔧 Menu before Monitoring
+edit_menu
 
-    case "$choice" in
-      1) edit_dns_only ;;
-      2) edit_ns_only ;;
-      3) edit_gateways_only ;;
-      4) start_monitor ;;
-      0) echo -e "${YELLOW}Thanks For Using this Script 💕.${NC}"; exit 0 ;;
-      *) echo -e "${RED}Invalid option. Try again.${NC}"; sleep 1 ;;
-    esac
-  done
-}
-
-main_menu
+# 🌀 Main Loop
+while true; do
+  LOOP_DELAY=$(<"$DELAY_FILE")
+  ((LOOP_DELAY < 1)) && LOOP_DELAY=2
+  echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
+  echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
+  check_interface
+  check_speed
+  check_gateways
+  check_servers
+  echo -e "\n-----------------------------"
+  sleep "$LOOP_DELAY"
+done

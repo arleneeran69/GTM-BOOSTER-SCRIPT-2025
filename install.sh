@@ -50,11 +50,11 @@ edit_menu() {
   padding_version=$(( (box_width - ${#version}) / 2 ))
 
   echo -e "\e[1;35m╔════════════════════════════════════════╗\e[0m"
-  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
-  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
+  printf "\e[1;35m %*s%s%*s║\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
+  printf "\e[1;35m %*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
   echo -e "\e[1;35m╚════════════════════════════════════════╝\e[0m"
 
-  echo -e "\e[1;32m╔═══════════════════ MAIN MENU ═══════════════════╗"
+  echo -e "\e[1;32m╔═════════════ GTM MAIN MENU ═════════════╗"
   echo -e "  1) Edit NS Domains + DNS IPs"
   echo -e "  2) Edit Gateways"
   echo -e "  3) Edit Loop Delay"

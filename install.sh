@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-## GTM | BOOSTER v2.2.2 - Now with Exit Menu and Ctrl+C Trap
+## GTM | BOOSTER v2.2.2 - With Ctrl+C Trap + ASCII Art Header
 ## Author: GeoDevz69 | Enhanced by ChatGPT
 
 VER="2.2.2"
@@ -40,8 +40,30 @@ color_ping() {
   else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
+yellow_art() {
+  echo -e "\e[1;33m"
+  cat << "EOF"
+⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣠⣾⣿⣿⣷⣶⠁⠀⠀⠈⢴⣾⣿⣿⣿⣄⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠀⠁⠀⣰⠀⠀⣆⠀⠈⠁⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠔⢹⠀⠀⡏⠣⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⡶⣖⠈⠉⠀⠀⢜⣤⣤⡣⠄⠀⠈⠁⣲⢖⡞⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠻⣜⢷⣤⣤⣶⣿⠋⠙⣿⣶⣤⣤⡾⢫⠞⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⠀⠀⠈⠉⠉⠉⠉⠁⠀⠀⢠⠋⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣿⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠸⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
+⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
+EOF
+  echo -e "\e[0m"
+}
+
 edit_menu() {
   clear
+  yellow_art
   box_width=41
   header="GDEVZ GTM BOOSTER"
   version="Script Version: ${VER}"
@@ -178,5 +200,5 @@ main_loop() {
   done
 }
 
-# Start Script
+# Start
 edit_menu

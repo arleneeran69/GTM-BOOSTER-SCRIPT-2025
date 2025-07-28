@@ -42,23 +42,25 @@ color_ping() {
 
 edit_menu() {
   clear
-  box_width=44
+  box_width=41
   header="GDEVZ GTM BOOSTER"
   version="Script Version: ${VER}"
 
-  printf "\e[1;35m╔%0.s═" $(seq 1 $box_width); echo -e "╗\e[0m"
-  printf "\e[1;35m║%*s%-*s║\e[0m\n" $(( (box_width - ${#header}) / 2 )) "" $(( (box_width + ${#header}) / 2 )) "$header"
-  printf "\e[1;35m║%*s%-*s║\e[0m\n" $(( (box_width - ${#version}) / 2 )) "" $(( (box_width + ${#version}) / 2 )) "$version"
-  printf "\e[1;35m╚%0.s═" $(seq 1 $box_width); echo -e "╝\e[0m"
+  padding_header=$(( (box_width - ${#header}) / 2 ))
+  padding_version=$(( (box_width - ${#version}) / 2 ))
 
-  printf "\e[1;32m╔%0.s═" $(seq 1 $box_width); echo -e "╗"
-  printf "║  1) Edit NS Domains + DNS IPs              ║\n"
-  printf "║  2) Edit Gateways                          ║\n"
-  printf "║  3) Edit Loop Delay                        ║\n"
-  printf "║  4) Start Monitoring                       ║\n"
-  printf "║  0) Exit Script Now                        ║\n"
-  printf "╚%0.s═" $(seq 1 $box_width); echo -e "╝\e[0m"
+  echo -e "\e[1;35m╔════════════════════════════════════════╗\e[0m"
+  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
+  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
+  echo -e "\e[1;35m╚════════════════════════════════════════╝\e[0m"
 
+  echo -e "\e[1;32m╔═══════════════════ MAIN MENU ═══════════════════╗"
+  echo -e "  1) Edit NS Domains + DNS IPs"
+  echo -e "  2) Edit Gateways"
+  echo -e "  3) Edit Loop Delay"
+  echo -e "  4) Start Monitoring"
+  echo -e "  0) Exit Script Now"
+  echo -e "╚════════════════════════════════════════╝\e[0m"
   echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in

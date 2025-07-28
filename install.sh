@@ -60,13 +60,13 @@ edit_menu() {
   printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
   echo -e "\e[1;35m╚═════════════════════════════════╝\e[0m"
 
-  echo -e "\n\e[1;36m🛠️  Configuration Menu:\e[0m"
+  echo -e "\n\e[1;36m🛠️  GTM | MAIN | MENU:\e[0m"
   echo -e "\e[1;32m╔═════════════════════════════════╗"
   echo -e "  1) Edit NS Domains + DNS IPs"
   echo -e "  2) Edit Gateways"
-  echo -e "  3) Edit Loop Delay"
-  echo -e "  0) Start Monitoring"
-  echo -e "  9) Exit Booster"
+  echo -e "  3) Edit Loops Delay"
+  echo -e "  4) Inject Now"
+  echo -e "  0) Exit Script Now"
   echo -e "╚═════════════════════════════════╝\e[0m"
   echo -ne "\n\e[1;32mChoose option [0–3 or 9]: \e[0m"
   read opt

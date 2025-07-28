@@ -1,7 +1,8 @@
+
 #!/data/data/com.termux/files/usr/bin/bash
 
 ## GTM | BOOSTER v2.2.2 - With Ctrl+C Trap + ASCII Art Header
-## Author: GeoDevz69 | Enhanced by ChatGPT
+## Author: GeoDevz69 
 
 VER="2.2.2"
 VPN_INTERFACE="tun0"
@@ -13,6 +14,7 @@ FAIL_LIMIT=5
 NS_FILE=".ns_list.txt"
 GW_FILE=".gw_list.txt"
 DELAY_FILE=".loop_delay.txt"
+EXIT_LOOP=0
 
 [[ ! -f $NS_FILE ]] && echo -e "vpn.kagerou.site 124.6.181.167\nphc.jericoo.xyz 124.6.181.26" > "$NS_FILE"
 [[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
@@ -21,8 +23,7 @@ DELAY_FILE=".loop_delay.txt"
 trap ctrl_c_handler SIGINT
 ctrl_c_handler() {
   echo -e "\n\n⚠️  Ctrl+C detected — returning to main menu..."
-  sleep 1
-  edit_menu
+  EXIT_LOOP=1
 }
 
 case "${DIG_EXEC}" in
@@ -42,12 +43,10 @@ color_ping() {
 
 edit_menu() {
   clear
-
-  # Terminal width (defaults to 80 if tput fails)
   TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
 
-  # Display centered ASCII Art
-  ascii_art=$(cat << "EOF"
+  echo -e "\e[1;32m"
+  cat << "EOF"
 ⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -63,35 +62,27 @@ edit_menu() {
 ⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
 ⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
 EOF
-)
-
-  echo -e "\e[1;33m"
-  while IFS= read -r line; do
-    padding=$(( (TERM_WIDTH - ${#line}) / 2 ))
-    printf "%*s%s\n" "$padding" "" "$line"
-  done <<< "$ascii_art"
   echo -e "\e[0m"
 
-  # Decorative box and menu
   box_width=41
   header="GDEVZ GTM BOOSTER"
   version="Script Version: ${VER}"
-
   padding_header=$(( (box_width - ${#header}) / 2 ))
   padding_version=$(( (box_width - ${#version}) / 2 ))
 
-  echo -e "\e[1;35m╔══════════════════════════════════════╗\e[0m"
-  printf "\e[1;35m %*s%s%*s \e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
-  printf "\e[1;35m %*s%s%*s \e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
-  echo -e "\e[1;35m╚══════════════════════════════════════╝\e[0m"
+  echo -e "\e[1;32m╔══════════════════════════════════════╗\e[0m"
+  printf "\e[1;32m%*s%s%*s\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
+  printf "\e[1;32m%*s%s%*s\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
+  echo -e "\e[1;32m╚══════════════════════════════════════╝\e[0m"
 
   echo -e "\e[1;32m╔═════════════GTM•MAIN•MENU════════════╗"
-  echo -e "  1) Edit NS Domains + DNS IPs"
-  echo -e "  2) Edit Gateways"
-  echo -e "  3) Edit Loop Delay"
-  echo -e "  4) Start Monitoring"
-  echo -e "  0) Exit Script Now"
+  echo -e "  1) Edit NS Domains + DNS IPs       "
+  echo -e "  2) Edit Gateways                   "
+  echo -e "  3) Edit Loop Delay                 "
+  echo -e "  4) Start Monitoring                "
+  echo -e "  0) Exit Script Now                 "
   echo -e "╚══════════════════════════════════════╝\e[0m"
+
   echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in
@@ -166,7 +157,6 @@ check_servers() {
     [[ -z "$ns_domain" || -z "$dns_ip" ]] && continue
 
     echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
-
     if ping -c1 -W2 "$dns_ip" > /dev/null; then
       ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
       echo -ne "    \e[32m✓ Ping OK\e[0m — "
@@ -195,7 +185,8 @@ check_servers() {
 }
 
 main_loop() {
-  while true; do
+  EXIT_LOOP=0
+  while [[ $EXIT_LOOP -eq 0 ]]; do
     LOOP_DELAY=$(<"$DELAY_FILE")
     ((LOOP_DELAY < 1)) && LOOP_DELAY=2
     echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
@@ -207,7 +198,10 @@ main_loop() {
     echo -e "\n-----------------------------"
     sleep "$LOOP_DELAY"
   done
+
+  # After loop exits
+  edit_menu
 }
 
-# Start
+# Start the main menu
 edit_menu

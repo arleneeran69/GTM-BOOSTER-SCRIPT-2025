@@ -43,11 +43,9 @@ color_ping() {
 edit_menu() {
   clear
 
-  # Terminal width (defaults to 80 if tput fails)
-  TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
-
-  # Display centered ASCII Art
-  ascii_art=$(cat << "EOF"
+  # ASCII Art in Upper-Left
+  echo -e "\e[1;35m"
+  cat << "EOF"
 ⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -63,20 +61,13 @@ edit_menu() {
 ⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
 ⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
 EOF
-)
-
-  echo -e "\e[1;33m"
-  while IFS= read -r line; do
-    padding=$(( (TERM_WIDTH - ${#line}) / 2 ))
-    printf "%*s%s\n" "$padding" "" "$line"
-  done <<< "$ascii_art"
   echo -e "\e[0m"
 
-  # Decorative box and menu
+  # Terminal width
+  TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
   box_width=41
   header="GDEVZ GTM BOOSTER"
   version="Script Version: ${VER}"
-
   padding_header=$(( (box_width - ${#header}) / 2 ))
   padding_version=$(( (box_width - ${#version}) / 2 ))
 
@@ -209,5 +200,5 @@ main_loop() {
   done
 }
 
-# Start
+# Start Script
 edit_menu

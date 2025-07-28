@@ -40,23 +40,30 @@ color_ping() {
   else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
-# Edit Menus (with centered art)
+# Edit Menus (with centered art and green menu)
 edit_menu() {
   clear
-  echo -e "\n\e[1;35m╔═════════════════════════════╗"
-  echo -e "       GDEVZ GTM BOOSTER      "
-  echo -e "         Script Version: 1.0  "
-  echo -e "╚═════════════════════════════╝\e[0m"
-  
-  echo -e "\n\e[1;36m🛠️ Configuration Menu:\e[0m"
-  echo -e "╔═════════════════════════════╗"
-  echo -e "  1) Edit NS Domains   (.ns_list.txt)"
-  echo -e "  2) Edit DNS IPs      (.dns_list.txt)"
-  echo -e "  3) Edit Gateways     (.gw_list.txt)"
-  echo -e "  4) Edit Loop Delay   (.loop_delay.txt)"
+  box_width=33
+  header="GDEVZ GTM BOOSTER"
+  version="Script Version: ${VER}"
+
+  padding_header=$(( (box_width - ${#header}) / 2 ))
+  padding_version=$(( (box_width - ${#version}) / 2 ))
+
+  echo -e "\e[1;35m╔═════════════════════════════════╗\e[0m"
+  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
+  printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
+  echo -e "\e[1;35m╚═════════════════════════════════╝\e[0m"
+
+  echo -e "\n\e[1;36m🛠️  Configuration Menu:\e[0m"
+  echo -e "\e[1;32m╔═════════════════════════════════╗"
+  echo -e "  1) Edit NS Domains"
+  echo -e "  2) Edit DNS IPs"
+  echo -e "  3) Edit Gateways"
+  echo -e "  4) Edit Loop Delay"
   echo -e "  0) Start Monitoring"
-  echo -e "╚═════════════════════════════╝"
-  echo -ne "\nChoose option [0–4]: "
+  echo -e "╚═════════════════════════════════╝\e[0m"
+  echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in
     1) nano "$NS_FILE" ;;
@@ -64,7 +71,7 @@ edit_menu() {
     3) nano "$GW_FILE" ;;
     4) nano "$DELAY_FILE" ;;
     0) return ;;
-    *) echo "Invalid option. Try again."; sleep 1 ;;
+    *) echo -e "\e[31mInvalid option. Try again.\e[0m"; sleep 1 ;;
   esac
   edit_menu
 }

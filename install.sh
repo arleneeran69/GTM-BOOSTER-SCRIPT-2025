@@ -1,27 +1,32 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-## GTM | BOOSTER v2.2.1 - Persistent Configs + Editable via Nano
+## GTM | BOOSTER v2.2.2 - Now with Exit Menu and Ctrl+C Trap
 ## Author: GeoDevz69 | Enhanced by ChatGPT
 
-VER="2.2.1"
+VER="2.2.2"
 VPN_INTERFACE="tun0"
 RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
 CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
 DIG_EXEC="DEFAULT"
 FAIL_LIMIT=5
 
-DNS_FILE=".dns_list.txt"
 NS_FILE=".ns_list.txt"
 GW_FILE=".gw_list.txt"
 DELAY_FILE=".loop_delay.txt"
 
-# Ensure files exist
-[[ ! -f $DNS_FILE ]] && echo -e "124.6.181.25\n124.6.181.26" > "$DNS_FILE"
-[[ ! -f $NS_FILE ]] && echo -e "gtm.codered-api.shop\nns.jkrol.fiber-x.shop" > "$NS_FILE"
+# Ensure required files exist
+[[ ! -f $NS_FILE ]] && echo -e "vpn.kagerou.site 124.6.181.167\nphc.jericoo.xyz 124.6.181.26" > "$NS_FILE"
 [[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
 [[ ! -f $DELAY_FILE ]] && echo "5" > "$DELAY_FILE"
 
-trap 'echo -e "\n[+] Exiting..."; exit 0' SIGINT SIGTERM
+# Handle Ctrl+C to return to menu instead of exiting
+trap ctrl_c_handler SIGINT
+
+ctrl_c_handler() {
+  echo -e "\n\n⚠️  Ctrl+C detected — returning to main menu..."
+  sleep 1
+  edit_menu
+}
 
 # DIG Executable
 case "${DIG_EXEC}" in
@@ -32,7 +37,7 @@ esac
 
 [ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
 
-# Ping Color
+# Ping Coloring
 color_ping() {
   local ms=$1
   if [[ $ms -le 100 ]]; then echo -e "\e[32m${ms}ms FAST\e[0m"
@@ -40,7 +45,7 @@ color_ping() {
   else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
-# Edit Menus (with centered art and green menu)
+# Menu
 edit_menu() {
   clear
   box_width=33
@@ -57,26 +62,26 @@ edit_menu() {
 
   echo -e "\n\e[1;36m🛠️  Configuration Menu:\e[0m"
   echo -e "\e[1;32m╔═════════════════════════════════╗"
-  echo -e "  1) Edit NS Domains"
-  echo -e "  2) Edit DNS IPs"
-  echo -e "  3) Edit Gateways"
-  echo -e "  4) Edit Loop Delay"
+  echo -e "  1) Edit NS Domains + DNS IPs"
+  echo -e "  2) Edit Gateways"
+  echo -e "  3) Edit Loop Delay"
   echo -e "  0) Start Monitoring"
+  echo -e "  9) Exit Booster"
   echo -e "╚═════════════════════════════════╝\e[0m"
-  echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
+  echo -ne "\n\e[1;32mChoose option [0–3 or 9]: \e[0m"
   read opt
   case $opt in
     1) nano "$NS_FILE" ;;
-    2) nano "$DNS_FILE" ;;
-    3) nano "$GW_FILE" ;;
-    4) nano "$DELAY_FILE" ;;
-    0) return ;;
+    2) nano "$GW_FILE" ;;
+    3) nano "$DELAY_FILE" ;;
+    0) main_loop ;;
+    9) echo -e "\n👋 Exiting GTM Booster. Stay fast!"; exit 0 ;;
     *) echo -e "\e[31mInvalid option. Try again.\e[0m"; sleep 1 ;;
   esac
   edit_menu
 }
 
-# VPN Interface Check
+# Check VPN Interface
 check_interface() {
   if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
     echo -e "\n[✓] $VPN_INTERFACE is UP"
@@ -94,7 +99,7 @@ restart_vpn() {
   sleep 2
 }
 
-# VPN RX/TX
+# Show RX/TX
 check_speed() {
   stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
   RX=$(echo "$stats" | awk '{print $1}')
@@ -102,7 +107,7 @@ check_speed() {
   echo -e "    🔄 RX=${RX}B | TX=${TX}B"
 }
 
-# Check Gateways
+# Check Gateway Pings
 check_gateways() {
   echo -e "\n🌐 Checking Gateways:"
   local best_gw=""
@@ -129,36 +134,37 @@ check_gateways() {
   fi
 }
 
-# DNS+NS Monitor
+# Check NS + DNS
 check_servers() {
   local total_ok=0
   local total_fail=0
   local fail_count=0
-  echo -e "\n🔍 Checking NS & DNS:"
-  while read -r ns_domain; do
-    [[ -z "$ns_domain" ]] && continue
-    while read -r dns_ip; do
-      [[ -z "$dns_ip" ]] && continue
-      echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
+  echo -e "\n🔍 Checking NS & DNS (from .ns_list.txt):"
+  while read -r line; do
+    [[ -z "$line" || "$line" =~ ^# ]] && continue
+    ns_domain=$(echo "$line" | awk '{print $1}')
+    dns_ip=$(echo "$line" | awk '{print $2}')
+    [[ -z "$ns_domain" || -z "$dns_ip" ]] && continue
 
-      if ping -c1 -W2 "$dns_ip" > /dev/null; then
-        ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-        echo -ne "    \e[32m✓ Ping OK\e[0m — "
-        color_ping "$ping_ms"
-      else
-        echo -e "    \e[31m✗ Ping FAIL\e[0m"
-        ((fail_count++)); ((total_fail++))
-        continue
-      fi
+    echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
 
-      if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
-        echo -e "    \e[32m✓ DNS Query OK\e[0m"
-        ((total_ok++))
-      else
-        echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
-        ((fail_count++)); ((total_fail++))
-      fi
-    done < "$DNS_FILE"
+    if ping -c1 -W2 "$dns_ip" > /dev/null; then
+      ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    \e[32m✓ Ping OK\e[0m — "
+      color_ping "$ping_ms"
+    else
+      echo -e "    \e[31m✗ Ping FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+      continue
+    fi
+
+    if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
+      echo -e "    \e[32m✓ DNS Query OK\e[0m"
+      ((total_ok++))
+    else
+      echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+    fi
   done < "$NS_FILE"
 
   echo -e "\n📊 Result: OK=$total_ok | FAIL=$total_fail"
@@ -169,19 +175,21 @@ check_servers() {
   fi
 }
 
-### 🔧 Menu before Monitoring
-edit_menu
+# 🔄 Main Monitoring Loop
+main_loop() {
+  while true; do
+    LOOP_DELAY=$(<"$DELAY_FILE")
+    ((LOOP_DELAY < 1)) && LOOP_DELAY=2
+    echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
+    echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
+    check_interface
+    check_speed
+    check_gateways
+    check_servers
+    echo -e "\n-----------------------------"
+    sleep "$LOOP_DELAY"
+  done
+}
 
-# 🌀 Main Loop
-while true; do
-  LOOP_DELAY=$(<"$DELAY_FILE")
-  ((LOOP_DELAY < 1)) && LOOP_DELAY=2
-  echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
-  echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
-  check_interface
-  check_speed
-  check_gateways
-  check_servers
-  echo -e "\n-----------------------------"
-  sleep "$LOOP_DELAY"
-done
+# Launch Menu
+edit_menu

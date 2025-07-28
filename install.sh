@@ -14,21 +14,17 @@ NS_FILE=".ns_list.txt"
 GW_FILE=".gw_list.txt"
 DELAY_FILE=".loop_delay.txt"
 
-# Ensure required files exist
 [[ ! -f $NS_FILE ]] && echo -e "vpn.kagerou.site 124.6.181.167\nphc.jericoo.xyz 124.6.181.26" > "$NS_FILE"
 [[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
 [[ ! -f $DELAY_FILE ]] && echo "5" > "$DELAY_FILE"
 
-# Handle Ctrl+C to return to menu instead of exiting
 trap ctrl_c_handler SIGINT
-
 ctrl_c_handler() {
   echo -e "\n\n⚠️  Ctrl+C detected — returning to main menu..."
   sleep 1
   edit_menu
 }
 
-# DIG Executable
 case "${DIG_EXEC}" in
   DEFAULT|D) _DIG=$(command -v dig) ;;
   CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
@@ -37,7 +33,6 @@ esac
 
 [ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
 
-# Ping Coloring
 color_ping() {
   local ms=$1
   if [[ $ms -le 100 ]]; then echo -e "\e[32m${ms}ms FAST\e[0m"
@@ -45,29 +40,27 @@ color_ping() {
   else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
 }
 
-# Fixed Menu
 edit_menu() {
   clear
-  box_width=33
+  box_width=41
   header="GDEVZ GTM BOOSTER"
   version="Script Version: ${VER}"
 
   padding_header=$(( (box_width - ${#header}) / 2 ))
   padding_version=$(( (box_width - ${#version}) / 2 ))
 
-  echo -e "\e[1;35m╔═════════════════════════════════╗\e[0m"
+  echo -e "\e[1;35m╔════════════════════════════════════════╗\e[0m"
   printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
   printf "\e[1;35m║%*s%s%*s║\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
-  echo -e "\e[1;35m╚═════════════════════════════════╝\e[0m"
+  echo -e "\e[1;35m╚════════════════════════════════════════╝\e[0m"
 
-  echo -e "\n\e[1;36m🛠️  GTM | MAIN | MENU:\e[0m"
-  echo -e "\e[1;32m╔═════════════════════════════════╗"
+  echo -e "\e[1;32m╔════════════════ MAIN MENU ═══════════════╗"
   echo -e "  1) Edit NS Domains + DNS IPs"
   echo -e "  2) Edit Gateways"
   echo -e "  3) Edit Loop Delay"
   echo -e "  4) Start Monitoring"
   echo -e "  0) Exit Script Now"
-  echo -e "╚═════════════════════════════════╝\e[0m"
+  echo -e "╚════════════════════════════════════════╝\e[0m"
   echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
   read opt
   case $opt in
@@ -81,7 +74,6 @@ edit_menu() {
   edit_menu
 }
 
-# Check VPN Interface
 check_interface() {
   if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
     echo -e "\n[✓] $VPN_INTERFACE is UP"
@@ -91,7 +83,6 @@ check_interface() {
   fi
 }
 
-# Restart Tunnel
 restart_vpn() {
   echo -e "\n\e[33m[!] Restarting DNSTT Client...\e[0m"
   pkill -f dnstt-client 2>/dev/null
@@ -99,7 +90,6 @@ restart_vpn() {
   sleep 2
 }
 
-# Show RX/TX
 check_speed() {
   stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
   RX=$(echo "$stats" | awk '{print $1}')
@@ -107,7 +97,6 @@ check_speed() {
   echo -e "    🔄 RX=${RX}B | TX=${TX}B"
 }
 
-# Check Gateway Pings
 check_gateways() {
   echo -e "\n🌐 Checking Gateways:"
   local best_gw=""
@@ -134,7 +123,6 @@ check_gateways() {
   fi
 }
 
-# Check NS + DNS
 check_servers() {
   local total_ok=0
   local total_fail=0
@@ -175,7 +163,6 @@ check_servers() {
   fi
 }
 
-# 🔄 Main Monitoring Loop
 main_loop() {
   while true; do
     LOOP_DELAY=$(<"$DELAY_FILE")
@@ -191,5 +178,5 @@ main_loop() {
   done
 }
 
-# Start
+# Start Script
 edit_menu

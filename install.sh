@@ -43,9 +43,23 @@ color_ping() {
 edit_menu() {
   clear
   TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
+
   echo -e "\e[1;32m"
   cat << "EOF"
-[Your ASCII Art Here...]
+⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣠⣾⣿⣿⣷⣶⠁⠀⠀⠈⢴⣾⣿⣿⣿⣄⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠀⠁⠀⣰⠀⠀⣆⠀⠈⠁⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠔⢹⠀⠀⡏⠣⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⡶⣖⠈⠉⠀⠀⢜⣤⣤⡣⠄⠀⠈⠁⣲⢖⡞⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠻⣜⢷⣤⣤⣶⣿⠋⠙⣿⣶⣤⣤⡾⢫⠞⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⠀⠀⠈⠉⠉⠉⠉⠁⠀⠀⢠⠋⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣿⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠸⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
+⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
 EOF
   echo -e "\e[0m"
 
@@ -134,38 +148,24 @@ check_servers() {
   local total_ok=0
   local total_fail=0
   local fail_count=0
-
   echo -e "\n🔍 Checking NS & DNS (from .ns_list.txt):"
   while read -r line; do
     [[ -z "$line" || "$line" =~ ^# ]] && continue
-
     ns_domain=$(echo "$line" | awk '{print $1}')
     dns_ip=$(echo "$line" | awk '{print $2}')
     [[ -z "$ns_domain" || -z "$dns_ip" ]] && continue
 
     echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
-
-    # Use IP format check before ping
-    if [[ "$dns_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      # Use ping -n to skip name resolution
-      ping_out=$(ping -n -c1 -W2 "$dns_ip" 2>&1)
-      if [[ $? -eq 0 ]]; then
-        ping_ms=$(echo "$ping_out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-        echo -ne "    \e[32m✓ Ping OK\e[0m — "
-        color_ping "$ping_ms"
-      else
-        echo -e "    \e[31m✗ Ping FAIL\e[0m"
-        echo -e "    \e[36m[Ping Output]\e[0m $ping_out"
-        ((fail_count++)); ((total_fail++))
-        continue
-      fi
+    if ping -c1 -W2 "$dns_ip" > /dev/null; then
+      ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    \e[32m✓ Ping OK\e[0m — "
+      color_ping "$ping_ms"
     else
-      echo -e "    \e[31m✗ Invalid IP format: $dns_ip\e[0m"
+      echo -e "    \e[31m✗ Ping FAIL\e[0m"
       ((fail_count++)); ((total_fail++))
       continue
     fi
 
-    # DNS query test
     if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
       echo -e "    \e[32m✓ DNS Query OK\e[0m"
       ((total_ok++))
@@ -197,8 +197,10 @@ main_loop() {
     echo -e "\n-----------------------------"
     sleep "$LOOP_DELAY"
   done
+
+  # After loop exits
   edit_menu
 }
 
-# Start main menu
+# Start the main menu
 edit_menu

@@ -1,205 +1,114 @@
 #!/data/data/com.termux/files/usr/bin/bash
+# GTM | BOOSTER v4.2.3 - Full Pink UI Edition
+# Author: GeoDevz69
 
-## GTM | BOOSTER v2.2.2 - With Ctrl+C Trap + ASCII Art Header
-## Author: GeoDevz69 
+# Colors
+PINK='\033[1;35m'
+NC='\033[0m'
 
-VER="2.2.2"
-VPN_INTERFACE="tun0"
-RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
-CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
-DIG_EXEC="CUSTOM"  # Change to DEFAULT or CUSTOM
-FAIL_LIMIT=5
+VER="4.2.3"
 
-NS_FILE=".ns_list.txt"
-GW_FILE=".gw_list.txt"
-DELAY_FILE=".loop_delay.txt"
-EXIT_LOOP=0
-
-# Default config file setup
-[[ ! -f $NS_FILE ]] && echo -e "vpn.kagerou.site 124.6.181.167\nphc.jericoo.xyz 124.6.181.26" > "$NS_FILE"
-[[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
-[[ ! -f $DELAY_FILE ]] && echo "5" > "$DELAY_FILE"
-
-# Ctrl+C trap
-trap ctrl_c_handler SIGINT
-ctrl_c_handler() {
-  echo -e "\n\n⚠️  Ctrl+C detected — returning to main menu..."
-  EXIT_LOOP=1
+# Detect architecture
+get_arch() {
+    case "$(uname -m)" in
+        aarch64) echo "aarch64" ;;
+        x86_64) echo "x86_64" ;;
+        armv7l|armv8l|arm) echo "arm" ;;
+        i*86) echo "i686" ;;
+        *) echo "unknown" ;;
+    esac
 }
 
-# Resolve dig binary
-case "${DIG_EXEC^^}" in
-  DEFAULT|D) _DIG=$(command -v dig) ;;
-  CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
-  *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
-esac
+# Check for Termux environment
+if [ ! -d "/data/data/com.termux" ]; then
+    echo -e "${PINK}This script is for Termux only!${NC}"
+    exit 1
+fi
 
-[ ! -x "$_DIG" ] && echo "[!] dig not found or not executable: $_DIG" && exit 1
+ARCH_TYPE="$(get_arch)"
+if [[ "$ARCH_TYPE" != "aarch64" && "$ARCH_TYPE" != "x86_64" && "$ARCH_TYPE" != "arm" ]]; then
+    echo -e "${PINK}Unsupported architecture: $ARCH_TYPE${NC}"
+    echo -e "${PINK}Only aarch64, arm, and x86_64 are supported.${NC}"
+    exit 1
+fi
 
-# Color-coded ping
-color_ping() {
-  local ms=$1
-  if [[ $ms -le 100 ]]; then echo -e "\e[32m${ms}ms FAST\e[0m"
-  elif [[ $ms -le 250 ]]; then echo -e "\e[33m${ms}ms MEDIUM\e[0m"
-  else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
+# Trap for generic error handling
+handle_error() {
+    echo -e "\n${PINK}An error occurred at ${progress:-unknown}%!${NC}"
+    echo -e "${PINK}Possible fixes:${NC}"
+    echo -e "${PINK}1. Check your internet connection"
+    echo -e "2. Run 'apt update && apt upgrade -y'${NC}"
+    exit 1
+}
+trap 'handle_error' ERR
+
+clear_screen() {
+    clear
 }
 
-# Menu editor
-edit_menu() {
-  clear
-  TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
-
-  echo -e "\e[1;32m"
-  cat << "EOF"
-⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢀⣠⣾⣿⣿⣷⣶⠁⠀⠀⠈⢴⣾⣿⣿⣿⣄⡀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠀⠁⠀⣰⠀⠀⣆⠀⠈⠁⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠔⢹⠀⠀⡏⠣⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢸⡶⣖⠈⠉⠀⠀⢜⣤⣤⡣⠄⠀⠈⠁⣲⢖⡞⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠻⣜⢷⣤⣤⣶⣿⠋⠙⣿⣶⣤⣤⡾⢫⠞⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⠀⠀⠈⠉⠉⠉⠉⠁⠀⠀⢠⠋⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣿⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠸⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
-⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
-EOF
-  echo -e "\e[0m"
-
-  header="GDEVZ GTM BOOSTER"
-  version="Script Version: ${VER}"
-  printf "\e[1;32m╔══════════════════════════════════════╗\n"
-  printf "  %-36s\n" "$header"
-  printf "  %-36s\n" "$version"
-  printf "╚══════════════════════════════════════╝\e[0m\n"
-
-  echo -e "\e[1;32m╔═════════════GTM•MAIN•MENU════════════╗"
-  echo -e "  1) Edit NS Domains + DNS IPs"
-  echo -e "  2) Edit Gateways"
-  echo -e "  3) Edit Loop Delay"
-  echo -e "  4) Start Monitoring"
-  echo -e "  0) Exit Script Now"
-  echo -e "╚══════════════════════════════════════╝\e[0m"
-
-  echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
-  read opt
-  case $opt in
-    1) nano "$NS_FILE" ;;
-    2) nano "$GW_FILE" ;;
-    3) nano "$DELAY_FILE" ;;
-    4) main_loop ;;
-    0) echo -e "\n👋 Exiting GTM Booster. Stay fast!"; exit 0 ;;
-    *) echo -e "\e[31mInvalid option. Try again.\e[0m"; sleep 1 ;;
-  esac
-  edit_menu
+run_silently() {
+    eval "$1" >/dev/null 2>&1 || return 1
 }
 
-check_interface() {
-  if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
-    echo -e "\n[✓] $VPN_INTERFACE is UP"
-  else
-    echo -e "\n[✗] $VPN_INTERFACE is DOWN"
-    restart_vpn
-  fi
+show_header() {
+    clear_screen
+    echo -e "${PINK}╔═══════════════════════════════════╗${NC}"
+    echo -e "${PINK}│     GeoDevz69 Termux Script       │${NC}"
+    echo -e "${PINK}│           Version: $VER            │${NC}"
+    echo -e "${PINK}╚═══════════════════════════════════╝${NC}"
+    echo
 }
 
-restart_vpn() {
-  echo -e "\n\e[33m[!] Restarting DNSTT Client...\e[0m"
-  pkill -f dnstt-client 2>/dev/null
-  eval "$RESTART_CMD" &
-  sleep 2
+show_loading_bar() {
+    echo -e "${PINK}Installing Termux Script...${NC}"
+    echo
+
+    local width=20
+    local progress=0
+    local ARCH="$(get_arch)"
+    local URL_BASE="https://github.com/hahacrunchyrollls/TERMUX-SCRIPT/raw/refs/heads/main"
+    local SCRIPT_NAME="termux-script-version-$VER"
+
+    while [ $progress -lt 100 ]; do
+        case $progress in
+            0) run_silently "rm -rf install"; progress=10 ;;
+            10) run_silently "apt update -y"; progress=20 ;;
+            20) run_silently "apt install -y wget"; progress=30 ;;
+            30) run_silently "apt install -y dnsutils"; progress=40 ;;
+            40) run_silently "apt install -y nano"; progress=50 ;;
+            50) run_silently "wget -q $URL_BASE/$SCRIPT_NAME"; progress=70 ;;
+            70) run_silently "chmod +x $SCRIPT_NAME"; progress=80 ;;
+            80) run_silently "mv $SCRIPT_NAME /data/data/com.termux/files/usr/bin/menu"; progress=100 ;;
+        esac
+
+        # Draw progress bar
+        filled=$((progress * width / 100))
+        bar="["
+        for ((i=0; i<filled; i++)); do bar+="■"; done
+        for ((i=filled; i<width; i++)); do bar+=" "; done
+        bar+="]"
+
+        printf "\r${PINK}%s %3d%%%s" "$bar" "$progress" "$NC"
+        sleep 0.2
+    done
+    printf "\n"
 }
 
-check_speed() {
-  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
-  RX=$(echo "$stats" | awk '{print $1}')
-  TX=$(echo "$stats" | awk '{print $9}')
-  echo -e "    🔄 RX=${RX}B | TX=${TX}B"
+main_installation() {
+    show_header
+    show_loading_bar
+    echo
+    echo -e "${PINK}╔═══════════════════════════════════╗${NC}"
+    echo -e "${PINK}│       INSTALLATION COMPLETE       │${NC}"
+    echo -e "${PINK}╚═══════════════════════════════════╝${NC}"
+    echo
+    echo -e "${PINK}TERMUX SCRIPT${NC}"
+    echo -e "${PINK}https://phcorner.net/members/phc_jerico.1922181${NC}"
+    echo
+    echo -e "${PINK}Press Enter to continue...${NC}"
+    read -p ""
 }
 
-check_gateways() {
-  echo -e "\n🌐 Checking Gateways:"
-  local best_gw=""
-  local best_ping=9999
-  while read -r gw; do
-    [[ -z "$gw" ]] && continue
-    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
-      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "    $gw — "
-      color_ping "$ms"
-      if [[ $ms -lt $best_ping ]]; then
-        best_ping=$ms
-        best_gw=$gw
-      fi
-    else
-      echo -e "    $gw — \e[31mUnreachable\e[0m"
-    fi
-  done < "$GW_FILE"
-  if [[ -n "$best_gw" ]]; then
-    echo -e "\n✅ Best Gateway: \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
-  else
-    echo -e "\n⚠️ No reachable gateways."
-  fi
-}
+main_installation
 
-check_servers() {
-  local total_ok=0
-  local total_fail=0
-  local fail_count=0
-  echo -e "\n🔍 Checking NS & DNS (from .ns_list.txt):"
-  while read -r line; do
-    [[ -z "$line" || "$line" =~ ^# ]] && continue
-    ns_domain=$(echo "$line" | awk '{print $1}')
-    dns_ip=$(echo "$line" | awk '{print $2}')
-    [[ -z "$ns_domain" || -z "$dns_ip" ]] && continue
-
-    echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
-    if ping -c1 -W2 "$dns_ip" > /dev/null; then
-      ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
-      echo -ne "    \e[32m✓ Ping OK\e[0m — "
-      color_ping "$ping_ms"
-    else
-      echo -e "    \e[31m✗ Ping FAIL\e[0m"
-      ((fail_count++)); ((total_fail++))
-      continue
-    fi
-
-    if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
-      echo -e "    \e[32m✓ DNS Query OK\e[0m"
-      ((total_ok++))
-    else
-      echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
-      ((fail_count++)); ((total_fail++))
-    fi
-  done < "$NS_FILE"
-
-  echo -e "\n📊 Result: OK=$total_ok | FAIL=$total_fail"
-
-  if (( fail_count >= FAIL_LIMIT )); then
-    echo -e "\n\e[31m[!] Too many failures — restarting tunnel\e[0m"
-    restart_vpn
-  fi
-}
-
-main_loop() {
-  EXIT_LOOP=0
-  while [[ $EXIT_LOOP -eq 0 ]]; do
-    LOOP_DELAY=$(<"$DELAY_FILE")
-    ((LOOP_DELAY < 1)) && LOOP_DELAY=2
-    echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
-    echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
-    check_interface
-    check_speed
-    check_gateways
-    check_servers
-    echo -e "\n-----------------------------"
-    sleep "$LOOP_DELAY"
-  done
-  edit_menu
-}
-
-# Start the script
-edit_menu
+echo -e "${PINK}Ready! Type 'menu' to start.${NC}"

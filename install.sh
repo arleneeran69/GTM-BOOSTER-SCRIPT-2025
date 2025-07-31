@@ -1,6 +1,206 @@
-# Encrypted Script 
-#By GeoDevz69 
+#!/data/data/com.termux/files/usr/bin/bash
 
-z="
-";UFz='⣿⣿⣄⡀';eOz='" @"';pLz='e='\'' ';VIz='"╚══';kPz='STER';eGz='padd';dGz='ER}"';Fz='RFAC';EPz=' >= ';KQz='eed';WLz='[[ -';LIz='art ';jHz='m╚══';Lz='"bas';QCz=' ctr';POz='g FA';xBz='\n8.';CHz='\e[1';JOz='0m —';INz='m .n';Zz='t.sh';RDz=' DIG';XMz='done';eDz='] di';fz='a/da';VNz='] &&';NNz='ne; ';BNz='il_c';fPz='& LO';HGz='⠁⢰⡏⠁';fFz='⡣⠄⠀⠈';AMz='nt($';jJz='1; t';RLz='whil';Pz='/com';UMz='e[31';SJz='chec';nDz='colo';OCz='ELAY';NQz='----';RJz='u';fIz=' opt';CCz='.9\n';Yz='lien';rKz='rint';nLz='out"';SNz='ine"';eMz='y: \';IFz='⠿⢿⣿⣧';ELz='tewa';NKz='/nul';jGz='${#h';QFz='⠀⠀⢀⣠';bIz='n [0';kBz='xyz ';TLz='ad -';hFz='⠀⠀⠀⠻';hOz='l 2>';GIz='oop ';mPz='VER}';EDz=' dig';qFz='⠁⠀⠀⠀';pPz='or S';vMz='tal_';gJz='dev/';MLz='st_g';MQz='"\n-';ACz='4\n9';XJz='if i';GLz='"\n�';PKz='eval';hHz='ng_v';oCz=' men';hGz='(( (';gLz='W2 "';KHz='ader';lCz='ning';eLz='ng -';ZGz='ipt ';ECz='0.0"';oHz='MENU';iOz='&1; ';MFz='⠀⠀';pz='dig"';xDz='0 ]]';VPz='-eq ';NJz='ain.';JQz='ace';vHz='DNS ';SFz='⣶⠁⠀⠀';QNz='" ||';QIz=') Ex';tFz='⠀⣠⠖⠋';cHz='$((b';bHz='on" ';CLz='B"';uBz='1.1\';LNz='xt):';WHz='g_ve';QMz='_gw=';EBz='t"';nJz='E is';IEz=' [[ ';oPz='onit';QLz='9999';PHz='ding';EEz='s FA';jz='x/fi';RGz='GDEV';mHz='TM•M';UCz='SIGI';jIz='ano ';pNz='m$ns';jLz=' -eq';MIz='Moni';aPz='LE")';ZHz=' "$v';BOz='_ms=';JKz=' dns';tBz='1.1.';OFz='⢿⠁⠀⠀';ez='/dat';fCz=' Ctr';hIz='t in';iDz='able';QKz=' "$R';oOz='ok++';mGz='/ 2 ';UNz='^# ]';EKz='ient';kMz='g)\e';IIz='y   ';OPz='el\e';ZOz='if t';rBz='E"';SMz=' $gw';aFz='⠔⢹⠀⠀';uNz='if p';FHz='s%*s';nKz='o "$';kJz='hen';hPz='+] G';mBz='6.18';QJz=';;';wPz='   �';gIz=' $op';DEz='ms}m';sIz='ain_';MGz='box_';cEz='edit';BPz='l"';OLz='st_p';TOz='; ((';FGz='⠀⣼⠀⠀';fKz='-A1 ';XHz='rsio';bJz='"$VP';cMz=' Bes';JFz='⣄⠀⠀⠀';LHz=' "" ';Vz='nstt';Wz='/sta';SHz='- ${';mLz='ms=$';eBz='.6.1';QEz=' "\e';EMz='w — ';kCz='etur';OIz='ng  ';hNz='awk ';oBz='" > ';MKz='/dev';wOz=' FAI';lJz='"\n[';lEz='(tpu';ICz='ILE ';qCz='P=1';IOz='K\e[';fNz='ip=$';RNz=' "$l';Rz='mux/';pDz='ng()';tNz='ip"';BHz='tf "';nMz=' rea';HFz='⠀⠀⠠⠾';tEz='0)';HKz='pkil';pKz=' awk';tGz='ion}';gz='ta/c';qDz='loca';aEz='m"; ';RBz='[[ !';sEz='ho 8';dEz='_men';uGz=') / ';uPz='≤100';rLz='k -F';aBz='kage';pCz='u...';AEz='en e';rDz='l ms';kNz=' "$d';LFz='⡿⠿⠷⠄';HEz='elif';UKz='&';EGz='⡾⢰⣏⡉';ZFz='⠀⠀⢀⡀';iHz='on -';nNz='•] \';kIz='E" ;';BDz='$(co';LQz='ys';RKz='ESTA';VHz=')) "';kz='les/';OKz='l';IJz='vali';sBz='$GW_';nBz='1.26';KMz=' ]];';UEz='MEDI';fDz='g no';YOz='inue';wEz='m"';ONz='do';FPz='IT )';OQz='p "$';mJz='✓] $';kKz=')';KOz=' "';WOz='il++';CKz='DNST';XDz='esac';rHz=') Ed';hCz='dete';HOz='ng O';iCz='cted';gFz='⠁⣲⢖⡞';YFz='⠉⠁⠀⠀';IGz='⢸⠃⠹⣾';VOz='l_fa';Kz='CMD=';QBz='P=0';Uz='me/d';tJz='art_';YMz=' < "';TFz='⠈⢴⣾⣿';ULz='r gw';DGz='⡶⣼⠁⠻';TDz='C: $';GJz='0 ;;';Xz='rt-c';PDz=' Inv';vCz='n';qPz='ed"';hEz='r';WEz='else';aLz='ntin';bCz='echo';PPz='_loo';YLz='gw" ';CNz='ount';DKz='T Cl';dLz='$(pi';uEz='"\e[';XPz='_DEL';YIz='Choo';iLz='[ $?';SLz='e re';DQz='[0m ';uHz='s + ';DBz='t.tx';sGz=' ${#';sCz='case';iPz='TM |';yDz='; th';hMz='_gw ';bNz='n=$(';dOz='3 "$';eNz='dns_';dBz=' 124';KGz='EOF';ALz='B | ';AIz='"  2';jBz='coo.';JHz='g_he';GBz='".gw';dDz=' "[!';lFz='⡾⢫⠞⠀';ZIz='se o';rOz='� Re';eHz='idth';nGz='))';HNz='(fro';XBz='cho ';HHz=' $pa';CMz=' "  ';mEz='t co';QDz='alid';wDz='e 10';uIz=' ;;';lIz='2) n';CJz='ster';TCz='ler ';XGz='ion=';DHz=';32m';sDz='=$1';fLz='c1 -';COz='$dns';bEz='fi';YNz='e';bPz='((LO';ODz='"[!]';MCz='5" >';tKz=''\'')';cPz='OP_D';Oz='data';IKz='l -f';UOz='tota';rMz='k_se';JLz='ng G';oz='fast';iMz='— $(';pFz='⠀⠀⣹⣿';THz='#hea';IQz='0ms)';tHz='S Do';yJz=' Res';HQz='(>25';YGz='"Scr';fEz='{';BLz='{TX}';CBz='_lis';OEz=' ech';pEz='v/nu';YCz='andl';BFz='⠀⠀⠀⠀';AHz='prin';EJz='ay f';qKz=' '\''{p';tOz=': OK';ZCz='er()';XNz='tinu';NFz='⠀⠀⠀⠙';vz='FAIL';PBz='_LOO';kHz='╝\e[';fMz='e[1;';SBz=' -f ';JJz='d op';iJz=' 2>&';lOz=' Que';PQz='AY"';FOz='[32m';wKz='"   ';iz='ermu';vKz=' $9}';FJz='ast!';DJz='. St';JCz=']] &';uKz='TX=$';bKz='s li';ZMz='[ -n';RMz='$gw';pMz='le g';bFz='⡏⠣⢀⡀';SDz='_EXE';VEz='UM\e';LEz='250 ';QPz='p() ';lNz='ns_i';NLz='w=""';dIz=' \e[';PGz='head';oIz='"$DE';SGz='Z GT';WFz='⠀⣰⠀⠀';RFz='⣾⣿⣿⣷';iBz='jeri';RHz='der ';TJz='k_in';HPz=' Too';LPz='es —';OMz='g=$m';cOz='k 3 ';TIz='t No';gOz='s_do';tCz=' "${';gNz='" | ';VGz='R"';lBz='124.';TBz='$NS_';KLz='ays:';GHz='m\n"';JNz='s_li';GNz='S & ';yGz='╗\e[';DIz='ays ';kDz='DIG"';ZKz='s=$(';xEz='cat ';CGz='⠀⣿⡀⢀';JEz='$ms ';MBz='lay.';oEz='>/de';eKz='rep ';jFz='⣶⣿⠋⠙';aOz='imeo';LJz='. Tr';wCz='DEFA';sOz='sult';EFz='⠀⠀⣀⣀';Iz='REST';TPz='IT_L';LDz='}" ;';dJz='TERF';gHz='addi';xCz='ULT|';cKz=' 2>/';rFz='⠀⠀⣿⣿';sFz=' ⠀⠸⠏';cFz='⠀⠀⢸⡶';uLz='$2}'\''';kEz='TH=$';xGz='════';IHz='ddin';UPz='OOP ';lKz='RX=$';PNz='line';uFz='⠹⢃⣷⡀';VMz='mUnr';tPz='ST (';IMz='est_';jOz='32m✓';pBz='"$NS';OBz='EXIT';BKz='ing ';yKz='{RX}';GGz='⠀⠀⢿⡼';qJz=' DOW';KDz='_DIG';vIz='0) e';REz='[33m';AKz='tart';wIz='\n👋';LKz='t 2>';rGz='th -';oDz='r_pi';wz='_LIM';QOz='IL\e';SOz='++))';VJz='ace(';vGz='2 ))';HJz='1mIn';TNz=' =~ ';wJz='e[33';NEz='then';Jz='ART_';UDz='"; e';lLz=']; t';nFz='⠈⠉⠉⠉';wHz='IPs ';KIz=') St';bz='CUST';tDz='if [';ABz='ILE=';vLz=' | a';HCz='AY_F';nPz=' - M';dHz='ox_w';ZJz='nk s';mCz=' to ';VLz='; do';pGz='(box';yMz='=0';vNz='-c1 ';vOz='ok |';mNz='p" ]';oKz='s" |';TGz='M BO';tIz='loop';qOz='AIL\';YPz='AY=$';WJz=') {';tMz='s() ';dz='IG="';PEz='o -e';TMz=' — \';lHz='═══G';yIz='ting';JIz='"  4';EIz='"  3';FCz=' > "';MNz='r li';FBz='GW_F';IBz='Y_FI';lDz='exit';wMz='ok=0';BBz='".ns';CDz='mman';gKz=''\''RX:';ZPz='(<"$';Nz='ata/';HBz='DELA';BMz='1)}'\''';qMz='ays.';iKz='tail';cLz='out=';jPz=' BOO';RCz='l_c_';BIz='it G';NMz='_pin';hLz='$gw"';DPz='( fa';wNz='-W2 ';oLz=''\''tim';vEz='1;32';CIz='atew';mFz='⠙⢄⠀⠀';uMz='l to';gEz='clea';cCz=' -e ';MMz='best';yEz='<< "';qBz='_FIL';JPz='y fa';WPz='LOOP';kGz='eade';WBz='&& e';mDz=' 1';EQz='  🔴';sJz='rest';aMz=' "$b';DLz='k_ga';yz='NS_F';MHz='"$he';aGz='Vers';ZLz='& co';XFz='⣆⠀⠈⠁';SEz='${ms';nOz='((to';fOz=' "$n';fBz='81.1';AFz='EOF"';FMz='ng "';Az='VER=';uOz='=$to';ZEz='\e[0';yPz='UM (';jNz='| -z';UJz='terf';xFz='⠀⠘⣇⠀';qLz='| aw';YKz='stat';tz='FAUL';eIz='read';PMz='s';PJz='p 1 ';Cz='.2"';BCz='.9.9';OHz=' pad';UGz='OSTE';OGz='h=41';KPz='ilur';WCz='ctrl';bLz='ue';sNz=' @ $';hBz='phc.';RPz='e [[';PFz='⠈⡿⠋⠁';LCz='ho "';CQz='s)\e';MJz='y ag';KBz='.loo';yNz='s_ip';xz='IT=5';oGz='$(( ';nCz='main';Mz='h /d';aJz='how ';FQz='31mS';GDz='OM|C';vBz='n8.8';sLz=''\''{pr';Qz='.ter';nz='bin/';hDz='ecut';WNz=' con';tLz='int ';LMz=' the';iIz='1) n';bOz='ut -';nHz='AIN•';vDz='s -l';xHz='    ';az='"';GPz='); t';rz='EXEC';Sz='file';dNz='1}'\'')';uJz='vpn';TKz='MD" ';qHz='"  1';bMz='"\n✅';nIz='3) n';qIz='" ;;';aHz='ersi';HMz='t $b';GFz='⠀';SIz='crip';FEz='ST\e';fGz='ing_';kLz=' 0 ]';dMz='t Ga';fJz=' > /';SCz='hand';FDz=') ;;';MPz=' res';DDz='d -v';NCz=' "$D';GKz='e[0m';jDz=': $_';xIz=' Exi';eEz='u() ';wGz='m╔══';gCz='l+C ';lMz='"\n⚠';XEz='[31m';kOz=' DNS';FNz='ng N';cNz='nt $';gBz='67\n';aDz='$_DI';jKz=' -n1';YHz='n ""';KKz='tt-c';GEz='[0m"';EHz='%*s%';xPz='� \e';LLz='l be';kFz='⣿⣶⣤⣤';ILz='ecki';rIz='4) m';JDz='STOM';dCz='"\n\';ROz='((fa';AOz='l; t';YEz='SLOW';YJz='p li';qz='DIG_';IPz=' man';ZNz='ns_d';xOz='L=$t';bGz='ion:';eCz='n⚠️ ';NBz='txt"';BJz=' Boo';ePz=')) &';FFz='⣀⠀⠀⠀';dKz=' | g';yBz='8.4.';Hz='un0"';sMz='rver';UIz='w   ';oFz='⢠⠋⠀⠀';FLz='ys()';XOz='cont';xMz='fail';NOz='31m✗';yCz='D) _';sPz='2mFA';XIz=' "\n';lPz=' v${';xNz='"$dn';rCz='}';vJz='vpn(';Gz='E="t';BGz='⡏⠀';BQz='250m';KNz='st.t';BEz='\e[3';rNz='ain\';pJz='✗] $';JMz='ping';uz='T"';yFz='⣠⠟⣽⣹';rEz='| ec';mz='/go/';CEz='2m${';QHz='_hea';aIz='ptio';cDz=' && ';GMz='$ms"';SPz=' $EX';bBz='rou.';UBz='FILE';gMz='36m$';ADz='DIG=';KEz='-le ';Bz='"2.2';pIz='LAY_';mMz='️ No';hJz='null';DFz='⣀⣀⠀⠀';MEz=']]; ';eFz='⠀⢜⣤⣤';GQz='LOW ';WGz='vers';DMz='  $g';cGz=' ${V';PLz='ing=';WKz='k_sp';hz='om.t';ZBz='vpn.';Dz='VPN_';MDz=';';NDz='*) e';bDz='G" ]';NGz='widt';DNz='"\n�';mKz='(ech';AGz='⠆⣷⣄⢀';HDz=') _D';KCz='& ec';aNz='omai';PIz='"  0';XKz='eed(';wFz='⠑⢋⡟⠛';cIz='–4]:';wBz='.8.8';iEz='TERM';XLz='z "$';GOz='✓ Pi';pHz='╗"';yHz='  "';WIz=' -ne';jCz=' — r';JGz='⠁';LGz='0m"';LOz='$pin';CPz='if (';sz='="DE';sKz=' $1}';aKz='ip -';VDz='xit ';oNz='e[34';dPz=' < 1';FKz='...\';lGz='r}) ';EOz='  \e';FIz='it L';PCz='trap';xLz='{pri';Ez='INTE';jEz='_WID';UHz='der}';NHz='" $(';oJz=' UP"';oMz='chab';hKz=''\'' | ';HIz='Dela';OJz='slee';JBz='LE="';ANz='l fa';qGz='_wid';uDz='[ $m';jMz='ng $';HLz='� Ch';cJz='N_IN';gGz='er=$';KFz='⠀⣀⣼⣿';DOz='_ip"';NPz='tunn';GCz='$DEL';uCz='}" i';TEz='}ms ';nEz='ls 2';XCz='_c_h';YBz='-e "';Tz='s/ho';rJz='N"';NIz='tori';mIz='"$GW';OOz=' Pin';cBz='site';xKz=' 🔄 ';mOz='ry O';wLz='wk '\''';iGz='h - ';VCz='NT';LBz='p_de';vFz='⢰⠇⣿⣙';ENz='� Ch';CFz='⠀⠀⠀⣀';VBz=' ]] ';KJz='tion';yOz='otal';xJz='m[!]';yLz='nt i';sHz='it N';QGz='er="';WDz='1 ;;';YDz='[ ! ';AQz='101–';MOz='g_ms';rPz=' 🟢 ';VKz='p 2';vPz='ms)\';dFz='⣖⠈⠉⠀';SKz='RT_C';iFz='⣜⢷⣤⣤';IDz='${CU';VFz='⠈⠉⠀⠁';qEz='ll |';cz='OM_D';qNz='_dom';APz='_fai';iNz='n" |';WMz='each';RIz='it S';DCz='0.0.';gDz='t ex';AJz=' GTM';lz='home';eJz='ACE"';gPz='=2';ZDz='-x "';pOz='ry F';aCz=' {';fHz=' - p';
-eval "$Az$Bz$Cz$z$Dz$Ez$Fz$Gz$Hz$z$Iz$Jz$Kz$Lz$Mz$Nz$Oz$Pz$Qz$Rz$Sz$Tz$Uz$Vz$Wz$Xz$Yz$Zz$az$z$bz$cz$dz$ez$fz$gz$hz$iz$jz$kz$lz$mz$nz$oz$pz$z$qz$rz$sz$tz$uz$z$vz$wz$xz$z$yz$ABz$BBz$CBz$DBz$EBz$z$FBz$ABz$GBz$CBz$DBz$EBz$z$HBz$IBz$JBz$KBz$LBz$MBz$NBz$z$OBz$PBz$QBz$z$RBz$SBz$TBz$UBz$VBz$WBz$XBz$YBz$ZBz$aBz$bBz$cBz$dBz$eBz$fBz$gBz$hBz$iBz$jBz$kBz$lBz$mBz$nBz$oBz$pBz$qBz$rBz$z$RBz$SBz$sBz$UBz$VBz$WBz$XBz$YBz$tBz$uBz$vBz$wBz$xBz$yBz$ACz$BCz$CCz$DCz$ECz$FCz$sBz$UBz$az$z$RBz$SBz$GCz$HCz$ICz$JCz$KCz$LCz$MCz$NCz$OCz$qBz$rBz$z$PCz$QCz$RCz$SCz$TCz$UCz$VCz$z$WCz$XCz$YCz$ZCz$aCz$z$bCz$cCz$dCz$eCz$fCz$gCz$hCz$iCz$jCz$kCz$lCz$mCz$nCz$oCz$pCz$az$z$OBz$PBz$qCz$z$rCz$z$sCz$tCz$qz$rz$uCz$vCz$z$wCz$xCz$yCz$ADz$BDz$CDz$DDz$EDz$FDz$z$bz$GDz$HDz$dz$IDz$JDz$KDz$LDz$MDz$z$NDz$XBz$ODz$PDz$QDz$RDz$SDz$TDz$qz$rz$UDz$VDz$WDz$z$XDz$z$YDz$ZDz$aDz$bDz$cDz$bCz$dDz$eDz$fDz$gDz$hDz$iDz$jDz$kDz$cDz$lDz$mDz$z$nDz$oDz$pDz$aCz$z$qDz$rDz$sDz$z$tDz$uDz$vDz$wDz$xDz$yDz$AEz$XBz$YBz$BEz$CEz$DEz$EEz$FEz$GEz$z$HEz$IEz$JEz$KEz$LEz$MEz$NEz$OEz$PEz$QEz$REz$SEz$TEz$UEz$VEz$GEz$z$WEz$OEz$PEz$QEz$XEz$SEz$TEz$YEz$ZEz$aEz$bEz$z$rCz$z$cEz$dEz$eEz$fEz$z$gEz$hEz$z$iEz$jEz$kEz$lEz$mEz$nEz$oEz$pEz$qEz$rEz$sEz$tEz$z$bCz$cCz$uEz$vEz$wEz$z$xEz$yEz$AFz$z$BFz$CFz$DFz$BFz$EFz$FFz$BFz$GFz$z$BFz$HFz$IFz$JFz$KFz$LFz$BFz$MFz$z$BFz$BFz$NFz$OFz$PFz$BFz$BFz$MFz$z$BFz$QFz$RFz$SFz$TFz$UFz$BFz$MFz$z$BFz$BFz$VFz$WFz$XFz$YFz$BFz$MFz$z$BFz$BFz$ZFz$aFz$bFz$BFz$BFz$MFz$z$BFz$cFz$dFz$eFz$fFz$gFz$BFz$MFz$z$BFz$hFz$iFz$jFz$kFz$lFz$BFz$MFz$z$BFz$BFz$mFz$nFz$YFz$oFz$BFz$MFz$z$BFz$BFz$BFz$pFz$BFz$qFz$BFz$MFz$z$BFz$BFz$BFz$rFz$BFz$BFz$BFz$MFz$z$BFz$BFz$BFz$sFz$BFz$BFz$BFz$GFz$z$tFz$uFz$vFz$wFz$xFz$yFz$AGz$BGz$z$CGz$DGz$EGz$FGz$GGz$HGz$IGz$JGz$z$KGz$z$bCz$cCz$uEz$LGz$z$MGz$NGz$OGz$z$PGz$QGz$RGz$SGz$TGz$UGz$VGz$z$WGz$XGz$YGz$ZGz$aGz$bGz$cGz$dGz$z$eGz$fGz$PGz$gGz$hGz$MGz$NGz$iGz$jGz$kGz$lGz$mGz$nGz$z$eGz$fGz$WGz$XGz$oGz$pGz$qGz$rGz$sGz$WGz$tGz$uGz$vGz$z$bCz$cCz$uEz$vEz$wGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$yGz$LGz$z$AHz$BHz$CHz$DHz$EHz$FHz$ZEz$GHz$HHz$IHz$JHz$KHz$LHz$MHz$KHz$NHz$pGz$qGz$rGz$OHz$PHz$QHz$RHz$SHz$THz$UHz$VHz$az$z$AHz$BHz$CHz$DHz$EHz$FHz$ZEz$GHz$HHz$IHz$WHz$XHz$YHz$ZHz$aHz$bHz$cHz$dHz$eHz$fHz$gHz$hHz$aHz$iHz$sGz$WGz$tGz$VHz$az$z$bCz$cCz$uEz$vEz$jHz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$kHz$LGz$z$bCz$cCz$uEz$vEz$wGz$xGz$xGz$lHz$mHz$nHz$oHz$xGz$xGz$xGz$pHz$z$bCz$cCz$qHz$rHz$sHz$tHz$nCz$uHz$vHz$wHz$xHz$yHz$z$bCz$cCz$AIz$rHz$BIz$CIz$DIz$xHz$xHz$xHz$xHz$yHz$z$bCz$cCz$EIz$rHz$FIz$GIz$HIz$IIz$xHz$xHz$xHz$yHz$z$bCz$cCz$JIz$KIz$LIz$MIz$NIz$OIz$xHz$xHz$xHz$yHz$z$bCz$cCz$PIz$QIz$RIz$SIz$TIz$UIz$xHz$xHz$xHz$yHz$z$bCz$cCz$VIz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$xGz$kHz$LGz$z$bCz$WIz$XIz$CHz$DHz$YIz$ZIz$aIz$bIz$cIz$dIz$LGz$z$eIz$fIz$z$sCz$gIz$hIz$z$iIz$jIz$pBz$qBz$kIz$MDz$z$lIz$jIz$mIz$qBz$kIz$MDz$z$nIz$jIz$oIz$pIz$UBz$qIz$z$rIz$sIz$tIz$uIz$z$vIz$XBz$YBz$wIz$xIz$yIz$AJz$BJz$CJz$DJz$EJz$FJz$UDz$VDz$GJz$z$NDz$XBz$YBz$BEz$HJz$IJz$JJz$KJz$LJz$MJz$NJz$ZEz$aEz$OJz$PJz$QJz$z$XDz$z$cEz$dEz$RJz$z$rCz$z$SJz$TJz$UJz$VJz$WJz$z$XJz$YJz$ZJz$aJz$bJz$cJz$dJz$eJz$fJz$gJz$hJz$iJz$jJz$kJz$z$bCz$cCz$lJz$mJz$Dz$Ez$Fz$nJz$oJz$z$WEz$z$bCz$cCz$lJz$pJz$Dz$Ez$Fz$nJz$qJz$rJz$z$sJz$tJz$uJz$z$bEz$z$rCz$z$sJz$tJz$vJz$WJz$z$bCz$cCz$dCz$wJz$xJz$yJz$AKz$BKz$CKz$DKz$EKz$FKz$GKz$az$z$HKz$IKz$JKz$KKz$Yz$LKz$MKz$NKz$OKz$z$PKz$QKz$RKz$SKz$TKz$UKz$z$OJz$VKz$z$rCz$z$SJz$WKz$XKz$WJz$z$YKz$ZKz$aKz$bKz$ZJz$aJz$bJz$cJz$dJz$eJz$cKz$gJz$hJz$dKz$eKz$fKz$gKz$hKz$iKz$jKz$kKz$z$lKz$mKz$nKz$YKz$oKz$pKz$qKz$rKz$sKz$tKz$z$uKz$mKz$nKz$YKz$oKz$pKz$qKz$rKz$vKz$tKz$z$bCz$cCz$wKz$xKz$lKz$yKz$ALz$uKz$BLz$CLz$z$rCz$z$SJz$DLz$ELz$FLz$aCz$z$bCz$cCz$GLz$HLz$ILz$JLz$CIz$KLz$az$z$qDz$LLz$MLz$NLz$z$qDz$LLz$OLz$PLz$QLz$z$RLz$SLz$TLz$ULz$VLz$z$WLz$XLz$YLz$JCz$ZLz$aLz$bLz$z$cLz$dLz$eLz$fLz$gLz$hLz$cKz$gJz$hJz$kKz$z$tDz$iLz$jLz$kLz$lLz$kJz$z$mLz$mKz$nKz$nLz$dKz$eKz$oLz$pLz$qLz$rLz$oLz$pLz$sLz$tLz$uLz$vLz$wLz$xLz$yLz$AMz$BMz$kKz$z$bCz$WIz$CMz$DMz$EMz$az$z$nDz$oDz$FMz$GMz$z$tDz$uDz$vDz$HMz$IMz$JMz$KMz$LMz$vCz$z$MMz$NMz$OMz$PMz$z$MMz$QMz$RMz$z$bEz$z$WEz$z$bCz$cCz$wKz$SMz$TMz$UMz$VMz$WMz$iDz$ZEz$wEz$z$bEz$z$XMz$YMz$sBz$UBz$az$z$tDz$ZMz$aMz$IMz$YLz$MEz$NEz$z$bCz$cCz$bMz$cMz$dMz$ELz$eMz$fMz$gMz$MMz$hMz$iMz$nDz$oDz$jMz$MMz$NMz$kMz$GEz$z$WEz$z$bCz$cCz$lMz$mMz$nMz$oMz$pMz$CIz$qMz$az$z$bEz$z$rCz$z$SJz$rMz$sMz$tMz$fEz$z$qDz$uMz$vMz$wMz$z$qDz$uMz$vMz$xMz$yMz$z$qDz$ANz$BNz$CNz$yMz$z$bCz$cCz$DNz$ENz$ILz$FNz$GNz$vHz$HNz$INz$JNz$KNz$LNz$az$z$RLz$SLz$TLz$MNz$NNz$ONz$z$WLz$XLz$PNz$QNz$RNz$SNz$TNz$UNz$VNz$WNz$XNz$YNz$z$ZNz$aNz$bNz$bCz$RNz$SNz$vLz$wLz$xLz$cNz$dNz$z$eNz$fNz$mKz$nKz$PNz$gNz$hNz$sLz$tLz$uLz$kKz$z$WLz$XLz$ZNz$aNz$iNz$jNz$kNz$lNz$mNz$VNz$WNz$XNz$YNz$z$bCz$cCz$lJz$nNz$oNz$pNz$qNz$rNz$GKz$sNz$eNz$tNz$z$uNz$BKz$vNz$wNz$xNz$yNz$oBz$MKz$NKz$AOz$kJz$z$JMz$BOz$dLz$eLz$fLz$gLz$COz$DOz$dKz$eKz$oLz$pLz$qLz$rLz$oLz$pLz$sLz$tLz$uLz$vLz$wLz$xLz$yLz$AMz$BMz$kKz$z$bCz$WIz$CMz$EOz$FOz$GOz$HOz$IOz$JOz$KOz$z$nDz$oDz$FMz$LOz$MOz$az$z$WEz$z$bCz$cCz$wKz$dIz$NOz$OOz$POz$QOz$GEz$z$ROz$BNz$CNz$SOz$TOz$UOz$VOz$WOz$nGz$z$XOz$YOz$z$bEz$z$ZOz$aOz$bOz$cOz$dOz$KDz$eOz$COz$DOz$fOz$gOz$nCz$oBz$MKz$NKz$hOz$iOz$NEz$z$bCz$cCz$wKz$dIz$jOz$kOz$lOz$mOz$IOz$LGz$z$nOz$vMz$oOz$nGz$z$WEz$z$bCz$cCz$wKz$dIz$NOz$kOz$lOz$pOz$qOz$GKz$az$z$ROz$BNz$CNz$SOz$TOz$UOz$VOz$WOz$nGz$z$bEz$z$XMz$YMz$TBz$UBz$az$z$bCz$cCz$DNz$rOz$sOz$tOz$uOz$vMz$vOz$wOz$xOz$yOz$APz$BPz$z$CPz$DPz$BNz$CNz$EPz$vz$wz$FPz$GPz$kJz$z$bCz$cCz$dCz$UMz$xJz$HPz$IPz$JPz$KPz$LPz$MPz$AKz$BKz$NPz$OPz$GEz$z$sJz$tJz$uJz$z$bEz$z$rCz$z$nCz$PPz$QPz$fEz$z$OBz$PBz$QBz$z$RLz$RPz$SPz$TPz$UPz$VPz$xDz$VLz$z$WPz$XPz$YPz$ZPz$HBz$IBz$aPz$z$bPz$cPz$OCz$dPz$ePz$fPz$cPz$OCz$gPz$z$bCz$cCz$lJz$hPz$iPz$jPz$kPz$lPz$mPz$nPz$oPz$pPz$AKz$qPz$z$bCz$cCz$wKz$rPz$BEz$sPz$tPz$uPz$vPz$GKz$wPz$xPz$REz$UEz$yPz$AQz$BQz$CQz$DQz$EQz$dIz$FQz$GQz$HQz$IQz$ZEz$wEz$z$SJz$TJz$UJz$JQz$z$SJz$WKz$KQz$z$SJz$DLz$ELz$LQz$z$SJz$rMz$sMz$PMz$z$bCz$cCz$MQz$NQz$NQz$NQz$NQz$NQz$NQz$NQz$az$z$OJz$OQz$WPz$XPz$PQz$z$XMz$z$cEz$dEz$RJz$z$rCz$z$cEz$dEz$RJz"
+## GTM | BOOSTER v2.2.2 - With Ctrl+C Trap + ASCII Art Header
+## Author: GeoDevz69 
+
+VER="2.2.2"
+VPN_INTERFACE="tun0"
+RESTART_CMD="bash /data/data/com.termux/files/home/dnstt/start-client.sh"
+CUSTOM_DIG="/data/data/com.termux/files/home/go/bin/fastdig"
+DIG_EXEC="DEFAULT"
+FAIL_LIMIT=5
+
+NS_FILE=".ns_list.txt"
+GW_FILE=".gw_list.txt"
+DELAY_FILE=".loop_delay.txt"
+EXIT_LOOP=0
+
+[[ ! -f $NS_FILE ]] && echo -e "vpn.kagerou.site 124.6.181.167\nphc.jericoo.xyz 124.6.181.26" > "$NS_FILE"
+[[ ! -f $GW_FILE ]] && echo -e "1.1.1.1\n8.8.8.8\n8.8.4.4\n9.9.9.9\n0.0.0.0" > "$GW_FILE"
+[[ ! -f $DELAY_FILE ]] && echo "5" > "$DELAY_FILE"
+
+trap ctrl_c_handler SIGINT
+ctrl_c_handler() {
+  echo -e "\n\n⚠️  Ctrl+C detected — returning to main menu..."
+  EXIT_LOOP=1
+}
+
+case "${DIG_EXEC}" in
+  DEFAULT|D) _DIG=$(command -v dig) ;;
+  CUSTOM|C) _DIG="${CUSTOM_DIG}" ;;
+  *) echo "[!] Invalid DIG_EXEC: $DIG_EXEC"; exit 1 ;;
+esac
+
+[ ! -x "$_DIG" ] && echo "[!] dig not executable: $_DIG" && exit 1
+
+color_ping() {
+  local ms=$1
+  if [[ $ms -le 100 ]]; then echo -e "\e[32m${ms}ms FAST\e[0m"
+  elif [[ $ms -le 250 ]]; then echo -e "\e[33m${ms}ms MEDIUM\e[0m"
+  else echo -e "\e[31m${ms}ms SLOW\e[0m"; fi
+}
+
+edit_menu() {
+  clear
+  TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
+
+  echo -e "\e[1;32m"
+  cat << "EOF"
+⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠠⠾⠿⢿⣿⣧⣄⠀⠀⠀⠀⣀⣼⣿⡿⠿⠷⠄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠁⠀⠀⠈⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣠⣾⣿⣿⣷⣶⠁⠀⠀⠈⢴⣾⣿⣿⣿⣄⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠀⠁⠀⣰⠀⠀⣆⠀⠈⠁⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠔⢹⠀⠀⡏⠣⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⡶⣖⠈⠉⠀⠀⢜⣤⣤⡣⠄⠀⠈⠁⣲⢖⡞⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠻⣜⢷⣤⣤⣶⣿⠋⠙⣿⣶⣤⣤⡾⢫⠞⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⠀⠀⠈⠉⠉⠉⠉⠁⠀⠀⢠⠋⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣿⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠸⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⣠⠖⠋⠹⢃⣷⡀⢰⠇⣿⣙⠑⢋⡟⠛⠀⠘⣇⠀⣠⠟⣽⣹⠆⣷⣄⢀⡏⠀
+⠀⣿⡀⢀⡶⣼⠁⠻⡾⢰⣏⡉⠀⣼⠀⠀⠀⠀⢿⡼⠁⢰⡏⠁⢸⠃⠹⣾⠁
+EOF
+  echo -e "\e[0m"
+
+  box_width=41
+  header="GDEVZ GTM BOOSTER"
+  version="Script Version: ${VER}"
+  padding_header=$(( (box_width - ${#header}) / 2 ))
+  padding_version=$(( (box_width - ${#version}) / 2 ))
+
+  echo -e "\e[1;32m╔══════════════════════════════════════╗\e[0m"
+  printf "\e[1;32m%*s%s%*s\e[0m\n" $padding_header "" "$header" $((box_width - padding_header - ${#header})) ""
+  printf "\e[1;32m%*s%s%*s\e[0m\n" $padding_version "" "$version" $((box_width - padding_version - ${#version})) ""
+  echo -e "\e[1;32m╚══════════════════════════════════════╝\e[0m"
+
+  echo -e "\e[1;32m╔═════════════GTM•MAIN•MENU════════════╗"
+  echo -e "  1) Edit NS Domains + DNS IPs       "
+  echo -e "  2) Edit Gateways                   "
+  echo -e "  3) Edit Loop Delay                 "
+  echo -e "  4) Start Monitoring                "
+  echo -e "  0) Exit Script Now                 "
+  echo -e "╚══════════════════════════════════════╝\e[0m"
+
+  echo -ne "\n\e[1;32mChoose option [0–4]: \e[0m"
+  read opt
+  case $opt in
+    1) nano "$NS_FILE" ;;
+    2) nano "$GW_FILE" ;;
+    3) nano "$DELAY_FILE" ;;
+    4) main_loop ;;
+    0) echo -e "\n👋 Exiting GTM Booster. Stay fast!"; exit 0 ;;
+    *) echo -e "\e[31mInvalid option. Try again.\e[0m"; sleep 1 ;;
+  esac
+  edit_menu
+}
+
+check_interface() {
+  if ip link show "$VPN_INTERFACE" > /dev/null 2>&1; then
+    echo -e "\n[✓] $VPN_INTERFACE is UP"
+  else
+    echo -e "\n[✗] $VPN_INTERFACE is DOWN"
+    restart_vpn
+  fi
+}
+
+restart_vpn() {
+  echo -e "\n\e[33m[!] Restarting DNSTT Client...\e[0m"
+  pkill -f dnstt-client 2>/dev/null
+  eval "$RESTART_CMD" &
+  sleep 2
+}
+
+check_speed() {
+  stats=$(ip -s link show "$VPN_INTERFACE" 2>/dev/null | grep -A1 'RX:' | tail -n1)
+  RX=$(echo "$stats" | awk '{print $1}')
+  TX=$(echo "$stats" | awk '{print $9}')
+  echo -e "    🔄 RX=${RX}B | TX=${TX}B"
+}
+
+check_gateways() {
+  echo -e "\n🌐 Checking Gateways:"
+  local best_gw=""
+  local best_ping=9999
+  while read -r gw; do
+    [[ -z "$gw" ]] && continue
+    out=$(ping -c1 -W2 "$gw" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+      ms=$(echo "$out" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    $gw — "
+      color_ping "$ms"
+      if [[ $ms -lt $best_ping ]]; then
+        best_ping=$ms
+        best_gw=$gw
+      fi
+    else
+      echo -e "    $gw — \e[31mUnreachable\e[0m"
+    fi
+  done < "$GW_FILE"
+  if [[ -n "$best_gw" ]]; then
+    echo -e "\n✅ Best Gateway: \e[1;36m$best_gw — $(color_ping $best_ping)\e[0m"
+  else
+    echo -e "\n⚠️ No reachable gateways."
+  fi
+}
+
+check_servers() {
+  local total_ok=0
+  local total_fail=0
+  local fail_count=0
+  echo -e "\n🔍 Checking NS & DNS (from .ns_list.txt):"
+  while read -r line; do
+    [[ -z "$line" || "$line" =~ ^# ]] && continue
+    ns_domain=$(echo "$line" | awk '{print $1}')
+    dns_ip=$(echo "$line" | awk '{print $2}')
+    [[ -z "$ns_domain" || -z "$dns_ip" ]] && continue
+
+    echo -e "\n[•] \e[34m$ns_domain\e[0m @ $dns_ip"
+    if ping -c1 -W2 "$dns_ip" > /dev/null; then
+      ping_ms=$(ping -c1 -W2 "$dns_ip" | grep 'time=' | awk -F'time=' '{print $2}' | awk '{print int($1)}')
+      echo -ne "    \e[32m✓ Ping OK\e[0m — "
+      color_ping "$ping_ms"
+    else
+      echo -e "    \e[31m✗ Ping FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+      continue
+    fi
+
+    if timeout -k 3 3 "$_DIG" @"$dns_ip" "$ns_domain" > /dev/null 2>&1; then
+      echo -e "    \e[32m✓ DNS Query OK\e[0m"
+      ((total_ok++))
+    else
+      echo -e "    \e[31m✗ DNS Query FAIL\e[0m"
+      ((fail_count++)); ((total_fail++))
+    fi
+  done < "$NS_FILE"
+
+  echo -e "\n📊 Result: OK=$total_ok | FAIL=$total_fail"
+
+  if (( fail_count >= FAIL_LIMIT )); then
+    echo -e "\n\e[31m[!] Too many failures — restarting tunnel\e[0m"
+    restart_vpn
+  fi
+}
+
+main_loop() {
+  EXIT_LOOP=0
+  while [[ $EXIT_LOOP -eq 0 ]]; do
+    LOOP_DELAY=$(<"$DELAY_FILE")
+    ((LOOP_DELAY < 1)) && LOOP_DELAY=2
+    echo -e "\n[+] GTM | BOOSTER v${VER} - Monitor Started"
+    echo -e "    🟢 \e[32mFAST (≤100ms)\e[0m   🟡 \e[33mMEDIUM (101–250ms)\e[0m   🔴 \e[31mSLOW (>250ms)\e[0m"
+    check_interface
+    check_speed
+    check_gateways
+    check_servers
+    echo -e "\n-----------------------------"
+    sleep "$LOOP_DELAY"
+  done
+
+  # After loop exits
+  edit_menu
+}
+
+# Start the main menu
+edit_menu
